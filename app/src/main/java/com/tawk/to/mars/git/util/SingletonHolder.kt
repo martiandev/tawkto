@@ -1,4 +1,4 @@
-package com.tawk.to.mars.git.model.database
+package com.tawk.to.mars.git.util
 
 open class SingletonHolder <out T: Any, in A>(creator: (A) -> T)
 {

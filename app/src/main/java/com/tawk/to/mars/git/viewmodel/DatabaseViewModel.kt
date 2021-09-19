@@ -3,6 +3,7 @@ package com.tawk.to.mars.git.viewmodel
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.tawk.to.mars.git.model.Preference
 import com.tawk.to.mars.git.model.database.TTDatabase
 import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.view.app.TawkTo
@@ -14,8 +15,11 @@ class DatabaseViewModel :ViewModel{
 
     @Inject
     lateinit var db: TTDatabase
+    @Inject
+    lateinit var preference: Preference
     var results = MutableLiveData<List<User>>()
     var saved = MutableLiveData<List<User>>()
+
 
     constructor(tawkTo: TawkTo)
     {
@@ -41,15 +45,14 @@ class DatabaseViewModel :ViewModel{
 
     }
 
-    fun get(since:Int,limit:Int)
+    fun get(since:Int)
     {
         db.userDao()
-            .getSince(since,limit)
+            .getSince(since,preference.getPageSize())
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
-                    Log.i("Network View MODEL","Retrieved"+it.size)
                     if(!it.isEmpty())
                     {
                         results.postValue(it)

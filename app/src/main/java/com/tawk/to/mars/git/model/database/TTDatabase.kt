@@ -7,8 +7,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.model.entity.converter.DateConverter
+import com.tawk.to.mars.git.util.SingletonHolder
 import com.tawk.to.mars.git.view.app.TawkTo
-import javax.inject.Singleton
 
 @TypeConverters(DateConverter::class)
 @Database(entities = arrayOf(
@@ -19,7 +19,6 @@ import javax.inject.Singleton
 abstract class TTDatabase :RoomDatabase()
 {
     init {
-        Log.i("TTDatabase","Database Initiated")
     }
     companion object : SingletonHolder<TTDatabase, TawkTo>({
         Room.databaseBuilder(it.applicationContext, TTDatabase::class.java, "talktwo").build()
