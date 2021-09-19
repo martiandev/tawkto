@@ -17,8 +17,8 @@ class VPFragment :Fragment(){
     var bottom_nav: BottomNavigationView? = null
     lateinit var adapter: HomePagerAdapter
 
-    lateinit var search: ListFragment
-    lateinit var settings:SettingsFragment
+     var search: ListFragment ? = null
+     var settings:SettingsFragment ? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _binding = FragmentViewpagerBinding.inflate(inflater, container, false)
@@ -41,7 +41,7 @@ class VPFragment :Fragment(){
     }
     fun setFragments() {
         var list: ArrayList<Fragment> = ArrayList()
-        search = ListFragment()
+        search = ListFragment(requireActivity() as ClickListener)
         settings = SettingsFragment()
 
         list.add(search!!)
@@ -63,7 +63,7 @@ class VPFragment :Fragment(){
     {
         if(search!=null)
         {
-            search.setResults(users)
+            search!!.setResults(users)
         }
     }
 

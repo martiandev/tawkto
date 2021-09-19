@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.SearchView
 import androidx.core.app.ActivityCompat
@@ -13,15 +14,18 @@ import androidx.lifecycle.Observer
 import com.tawk.to.mars.git.R
 
 import com.tawk.to.mars.git.databinding.ActivityMainBinding
+import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.util.Constants
 import com.tawk.to.mars.git.view.app.TawkTo
+import com.tawk.to.mars.git.view.fragment.DetailFragment
 import com.tawk.to.mars.git.view.fragment.SplashFragment
+import com.tawk.to.mars.git.view.fragment.viewpager.ClickListener
 import com.tawk.to.mars.git.view.fragment.viewpager.VPFragment
 import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 import javax.inject.Inject
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),ClickListener {
 
 
 
@@ -32,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     //------------------------------------------ Fragment ------------------------------------------
     lateinit var splash:SplashFragment
     lateinit var vp: VPFragment
+    lateinit var df: DetailFragment
     //----------------------------------------------------------------------------------------------
     //------------------------------------------- View ---------------------------------------------
     private lateinit var binding: ActivityMainBinding
@@ -49,17 +54,20 @@ class MainActivity : AppCompatActivity() {
     //======================================== LifeCycle ===========================================
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        (application as TawkTo).appComponent.inject(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        splash = SplashFragment()
+        vp = VPFragment()
+        df = DetailFragment()
         setSupportActionBar(binding.toolbar)
 
         binding.appBar.visibility= View.GONE
         binding.bottomNav.visibility = View.GONE
         binding.vDivider.visibility = View.GONE
-        (application as TawkTo).appComponent.inject(this)
 
-        splash = SplashFragment()
-        vp = VPFragment()
+
+
 
         if (shouldRequestPermission())
         {
@@ -73,14 +81,45 @@ class MainActivity : AppCompatActivity() {
             setBottomNavigation()
             setVP()
         }
-        nvm.results.observe(this, Observer {
-            vp.setResults(it)
-        })
-        nvm.requestUsersFrom(0)
+
 
       }
+    override fun onBackPressed() {
+        if(searchView!!.visibility==View.GONE)
+        {
+            supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+
+            binding.toolbar.visibility= View.VISIBLE
+            binding.toolbar.title = "Yelp"
+            binding.vDivider!!.visibility= View.VISIBLE
+            binding.bottomNav!!.visibility= View.VISIBLE
+            if(searchView!=null)
+            {
+                searchView!!.visibility =View.VISIBLE
+            }
+            if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
+            {
+                supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
+            }
+            setVP()
+        }
+    }
     //==============================================================================================
     //========================================= View ===============================================
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_search -> {
+
+                true
+            }
+            android.R.id.home ->
+            {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         Log.i("MENU","Menu created")
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -157,10 +196,27 @@ class MainActivity : AppCompatActivity() {
                     supportFragmentManager.beginTransaction().remove(splash).commit()
                     showNavigation()
                     setBottomNavigation()
+                    setVP()
                 }
             }
         }
 
+    }
+    //==============================================================================================
+    //=================================== ClickListener ============================================
+    override fun onSelected(u: User) {
+        nvm.search(u.login!!)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        searchView!!.visibility =View.GONE
+        binding.bottomNav!!.visibility = View.GONE
+        binding.vDivider!!.visibility = View.GONE
+        if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
+        {
+            supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
+        }
+        supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,"selection").commit()
+        binding.toolbar.title = u.login
+        df!!.updateUser(u)
     }
     //==============================================================================================
 }

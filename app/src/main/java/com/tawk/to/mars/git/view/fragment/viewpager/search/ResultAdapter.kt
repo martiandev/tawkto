@@ -9,14 +9,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.tawk.to.mars.git.R
 import com.tawk.to.mars.git.model.entity.User
+import com.tawk.to.mars.git.view.fragment.viewpager.ClickListener
 
 class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
 
     lateinit var items:List<User>
+    lateinit var cl:ClickListener
 
-    constructor(items:List<User>)
+    constructor(items:List<User>,cl:ClickListener)
     {
         this.items = items
+        this.cl = cl
     }
 
     class ViewHolder(view: View): RecyclerView.ViewHolder(view)
@@ -31,6 +34,12 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         var user = items.get(position)
+        holder.itemView.setOnClickListener {
+            if(cl!=null)
+            {
+                cl.onSelected(user)
+            }
+        }
         holder.tv_login.text = user.login
         Glide.with(holder.iv_avatar.context)
             .load(user.avatarUrl)
