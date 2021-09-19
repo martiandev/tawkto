@@ -37,7 +37,15 @@ class DetailFragment: Fragment() {
         if(user!=null)
         {
             nvm.userResult.observe(requireActivity(), Observer {
-                updateUser(it)
+                if(it!=null)
+                {
+                    updateUser(it)
+                }
+                else
+                {
+                    requireActivity().onBackPressed()
+                }
+
             })
             nvm.search(user!!.login!!)
 
