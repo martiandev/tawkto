@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity(),ClickListener {
             supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
             binding.toolbar.visibility= View.VISIBLE
-            binding.toolbar.title = "Yelp"
+            binding.toolbar.title = "TawkTo"
             binding.vDivider!!.visibility= View.VISIBLE
             binding.bottomNav!!.visibility= View.VISIBLE
             if(searchView!=null)
