@@ -42,6 +42,8 @@ data class User(@PrimaryKey var id:Int) {
     var type:String ?= null
     @SerializedName("site_admin")
     var isSiteAdmin:Boolean ?= null
+
+
     var name:String ?= null
     var company:String ?= null
     var blog:String ?= null

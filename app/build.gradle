@@ -16,6 +16,10 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+    buildFeatures{
+        dataBinding = true
+        viewBinding = true
+    }
 
     buildTypes {
         release {
@@ -105,5 +109,6 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-reactivestreams:2.2.0"
     implementation "androidx.room:room-rxjava2:$room_version"
 
+    kapt "com.android.databinding:compiler:3.4.0"
 
 }
