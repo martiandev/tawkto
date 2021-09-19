@@ -2,12 +2,13 @@ package com.tawk.to.mars.git.model.entity
 
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import com.tawk.to.mars.git.model.entity.embedded.Note
 import java.util.*
 
 @Entity
-data class User(var id:Int) {
+data class User(@PrimaryKey var id:Int) {
 
     @SerializedName("login")
     var login:String ?= null
@@ -57,9 +58,9 @@ data class User(var id:Int) {
     var followers:Int ?= null
     var following:Int ?= null
     @SerializedName("created_at")
-    var created_at: String?= null
+    var created_at: Date?= null
     @SerializedName("updated_at")
-    var updated_at:String ?= null
-//    @Embedded
-//    var note: Note?= null
+    var updated_at:Date ?= null
+    @Embedded
+    var note: Note?= null
 }
