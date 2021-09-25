@@ -41,7 +41,7 @@ class VPFragment :Fragment(){
     }
     fun setFragments() {
         var list: ArrayList<Fragment> = ArrayList()
-        search = ListFragment(requireActivity() as ClickListener)
+        search = ListFragment()
         settings = SettingsFragment()
 
         list.add(search!!)

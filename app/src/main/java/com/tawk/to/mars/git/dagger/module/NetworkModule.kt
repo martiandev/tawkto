@@ -45,9 +45,5 @@ class NetworkModule @Inject constructor(var app: TawkTo,var baseUrl:String)
         return  retrofit.create(GitHubService::class.java)
     }
 
-    @Provides
-    fun provideNetworkViewModel(): NetworkViewModel
-    {
-        return NetworkViewModel(app)
-    }
+
 }

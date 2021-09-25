@@ -11,10 +11,13 @@ import android.view.View
 import android.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.tawk.to.mars.git.R
 
 import com.tawk.to.mars.git.databinding.ActivityMainBinding
 import com.tawk.to.mars.git.model.entity.User
+import com.tawk.to.mars.git.model.network.request.Request
+import com.tawk.to.mars.git.model.network.request.UserRequest
 import com.tawk.to.mars.git.util.Constants
 import com.tawk.to.mars.git.view.app.TawkTo
 import com.tawk.to.mars.git.view.fragment.DetailFragment
@@ -25,9 +28,7 @@ import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 import javax.inject.Inject
 
-class MainActivity : AppCompatActivity(),ClickListener {
-
-
+class MainActivity : AppCompatActivity(){
 
     //========================================= Variable ===========================================
     //----------------------------------------- Variable -------------------------------------------
@@ -45,7 +46,6 @@ class MainActivity : AppCompatActivity(),ClickListener {
     //----------------------------------------------------------------------------------------------
     //------------------------------------------ Dagger --------------------------------------------
     //Injected using Dagger2
-    @Inject
     lateinit var  nvm: NetworkViewModel
     @Inject
     lateinit var  dvm: DatabaseViewModel
@@ -57,6 +57,8 @@ class MainActivity : AppCompatActivity(),ClickListener {
         (application as TawkTo).appComponent.inject(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        this.nvm = ViewModelProvider(this).get(NetworkViewModel::class.java)
+        nvm.init(application as TawkTo)
         splash = SplashFragment()
         vp = VPFragment()
         df = DetailFragment()
@@ -65,10 +67,7 @@ class MainActivity : AppCompatActivity(),ClickListener {
         binding.appBar.visibility= View.GONE
         binding.bottomNav.visibility = View.GONE
         binding.vDivider.visibility = View.GONE
-
-
-
-
+        setUpViewModel()
         if (shouldRequestPermission())
         {
             //if not granted launch splash fragment to request for permissions
@@ -121,7 +120,6 @@ class MainActivity : AppCompatActivity(),ClickListener {
         }
     }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        Log.i("MENU","Menu created")
         menuInflater.inflate(R.menu.menu_main, menu)
         searchView = menu.findItem(R.id.action_search).getActionView() as SearchView
         searchView!!.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -136,6 +134,26 @@ class MainActivity : AppCompatActivity(),ClickListener {
         })
 
         return true
+    }
+    //==============================================================================================
+    //======================================= View =================================================
+    fun setUpViewModel()
+    {
+        Log.d("NVM","VIEW MODEL SETUP")
+        nvm.userResult.observe(this, Observer {
+            Log.d("NVM","RECEIVED2")
+            supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+            searchView!!.visibility =View.GONE
+            binding.bottomNav!!.visibility = View.GONE
+            binding.vDivider!!.visibility = View.GONE
+            if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
+            {
+                supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
+            }
+            supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,"selection").commit()
+            binding.toolbar.title = it.login
+            df!!.updateUser(it)
+        })
     }
 
     fun setBottomNavigation()
@@ -203,20 +221,5 @@ class MainActivity : AppCompatActivity(),ClickListener {
 
     }
     //==============================================================================================
-    //=================================== ClickListener ============================================
-    override fun onSelected(u: User) {
-        nvm.search(u.login!!)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        searchView!!.visibility =View.GONE
-        binding.bottomNav!!.visibility = View.GONE
-        binding.vDivider!!.visibility = View.GONE
-        if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
-        {
-            supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
-        }
-        supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,"selection").commit()
-        binding.toolbar.title = u.login
-        df!!.updateUser(u)
-    }
-    //==============================================================================================
+
 }

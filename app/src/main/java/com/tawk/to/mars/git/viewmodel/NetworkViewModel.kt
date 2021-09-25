@@ -6,6 +6,11 @@ import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
 import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.model.network.GitHubService
+import com.tawk.to.mars.git.model.network.QueueManager
+import com.tawk.to.mars.git.model.network.request.Request
+import com.tawk.to.mars.git.model.network.request.SinceRequest
+import com.tawk.to.mars.git.model.network.request.UserImageRequest
+import com.tawk.to.mars.git.model.network.request.UserRequest
 import com.tawk.to.mars.git.view.app.TawkTo
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -14,9 +19,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 
-
-
-class NetworkViewModel : ViewModel
+class NetworkViewModel : ViewModel(),UserImageRequest.Listener
 {
     @Inject
     lateinit var gitHubService: GitHubService
@@ -25,14 +28,57 @@ class NetworkViewModel : ViewModel
 
     var results = MutableLiveData<List<User>>()
     var userResult = MutableLiveData<User>()
+    var isRequesting:Boolean = false
+    lateinit var tawkTo:TawkTo
 
-    constructor(tawkTo:TawkTo)
+    fun init(tawkTo:TawkTo)
     {
-        tawkTo.appComponent.inject(this)
+        this.tawkTo = tawkTo
+        this.tawkTo .appComponent.inject(this)
     }
 
+    fun request(r: Request)
+    {
+        QueueManager.getInstance(tawkTo).addToQueue(r)
+        next()
+    }
 
-    fun requestUsersFrom(id:Int)
+    private fun next()
+    {
+
+        if(!isRequesting)
+        {
+            if(QueueManager.getInstance(tawkTo).queue.size>0)
+            {
+                isRequesting = true
+                var request =  QueueManager.getInstance(tawkTo).getNext()
+                if(request is SinceRequest)
+                {
+                    requestUsersFrom(request.id!!,request)
+                }
+                else if(request is UserRequest)
+                {
+                    search(request.login!!,request)
+                }
+                else if(request is UserImageRequest)
+                {
+                    request.start(this)
+                }
+                else
+                {
+                    isRequesting = false
+                    next()
+                }
+            }
+            else
+            {
+                Log.i("QUEUE","Queue is empty")
+            }
+
+        }
+    }
+
+    private fun requestUsersFrom(id:Int,r: Request)
     {
         gitHubService
             .requestUsers(id)
@@ -52,17 +98,19 @@ class NetworkViewModel : ViewModel
                         {
                             results.postValue(listOf())
                         }
+                        isRequesting = false
+                        next()
                     }
 
                     override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                        Log.i("TEST","FAILED:"+t.localizedMessage)
-                        Log.i("TEST","FAILED:"+t.stackTrace.toString())
+                        isRequesting = false
+                        next()
 
                     }
 
                 })
     }
-    fun search(login:String)
+    private fun search(login:String,r: Request)
     {
         gitHubService
             .requestUser(login)
@@ -72,16 +120,31 @@ class NetworkViewModel : ViewModel
                     response: Response<User>
                 ) {
 
+                    Log.d("NVM","SUCCESS")
                     userResult.postValue(response.body())
+                    isRequesting = false
+                    next()
 
                 }
 
                 override fun onFailure(call: Call<User>, t: Throwable) {
-                    Log.i("TEST","FAILED:"+t.localizedMessage)
-                    Log.i("TEST","FAILED:"+t.stackTrace.toString())
+                    isRequesting = false
+                    next()
 
                 }
 
             })
     }
+
+    override fun onDone() {
+        isRequesting = false
+        next()
+    }
+
+    override fun onFailed() {
+        isRequesting = false
+        next()
+    }
+
+
 }

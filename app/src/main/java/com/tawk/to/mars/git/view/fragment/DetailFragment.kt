@@ -6,51 +6,38 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.tawk.to.mars.git.R
 import com.tawk.to.mars.git.databinding.FragmentDetailBinding
-import com.tawk.to.mars.git.databinding.FragmentSplashBinding
 import com.tawk.to.mars.git.model.entity.User
+import com.tawk.to.mars.git.model.network.request.Request
+import com.tawk.to.mars.git.model.network.request.UserImageRequest
+import com.tawk.to.mars.git.model.network.request.UserRequest
 import com.tawk.to.mars.git.view.app.TawkTo
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
+import java.lang.ref.WeakReference
 import javax.inject.Inject
 
 class DetailFragment: Fragment() {
     private var _binding: FragmentDetailBinding? = null
-    @Inject
     lateinit var nvm:NetworkViewModel
 
     var user: User ? = null
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _binding = FragmentDetailBinding.inflate(inflater, container, false)
+        nvm = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java)
         val view = _binding!!.root
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (requireActivity().application as TawkTo).appComponent.inject(this)
         if(user!=null)
         {
-            nvm.userResult.observe(requireActivity(), Observer {
-                if(it!=null)
-                {
-                    updateUser(it)
-                }
-                else
-                {
-                    requireActivity().onBackPressed()
-                }
-
-            })
-            nvm.search(user!!.login!!)
-
+            updateUser(user!!)
         }
-
     }
 
     override fun onDestroyView() {
@@ -70,10 +57,14 @@ class DetailFragment: Fragment() {
             _binding!!.tvGist.text=""+user.publicGists
             _binding!!.tvFollowers.text=""+user.followers
             _binding!!.tvFollowing.text=""+user.following
-            Glide.with(requireActivity())
-                .load(user.avatarUrl)
-                .placeholder(R.drawable.no)
-                .into(_binding!!.ivAvatar);
+
+            var request = UserImageRequest(user.id,
+                requireContext(),
+                user!!.avatarUrl!!,
+                WeakReference(_binding!!.ivAvatar)
+            )
+            nvm.request(request)
+
         }
 
     }
