@@ -2,7 +2,7 @@ package com.tawk.to.mars.git.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.tawk.to.mars.git.model.Preference
+import com.tawk.to.mars.git.model.preference.Preference
 import com.tawk.to.mars.git.view.app.TawkTo
 
 import javax.inject.Inject

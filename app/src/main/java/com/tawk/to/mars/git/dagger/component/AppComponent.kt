@@ -5,6 +5,7 @@ import com.tawk.to.mars.git.dagger.module.PreferenceModule
 import com.tawk.to.mars.git.dagger.module.RoomModule
 import com.tawk.to.mars.git.view.MainActivity
 import com.tawk.to.mars.git.view.fragment.DetailFragment
+import com.tawk.to.mars.git.view.fragment.viewpager.SettingsFragment
 import com.tawk.to.mars.git.view.fragment.viewpager.search.ListFragment
 import com.tawk.to.mars.git.view.fragment.viewpager.search.ResultAdapter
 import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
@@ -26,5 +27,6 @@ interface AppComponent {
     fun inject(preferenceViewModel: PreferenceViewModel)
     fun inject(listFragment: ListFragment)
     fun inject(detailFragment: DetailFragment)
+    fun inject(settingsFragment: SettingsFragment)
     fun inject(resultAdapter: ResultAdapter)
 }

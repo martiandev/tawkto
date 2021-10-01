@@ -1,6 +1,6 @@
 package com.tawk.to.mars.git.dagger.module
 
-import com.tawk.to.mars.git.model.Preference
+import com.tawk.to.mars.git.model.preference.Preference
 import com.tawk.to.mars.git.view.app.TawkTo
 import com.tawk.to.mars.git.viewmodel.PreferenceViewModel
 import dagger.Module

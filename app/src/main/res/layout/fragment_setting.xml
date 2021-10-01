@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"/>
 
     <TextView
-        android:id="@+id/tv_value_radius"
+        android:id="@+id/tv_page_size_value"
         android:textSize="120sp"
         app:layout_constraintTop_toBottomOf="@+id/gl_h_1"
         app:layout_constraintLeft_toRightOf="@+id/gl_v_4"
@@ -59,19 +59,19 @@
     <SeekBar
 
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/tv_value_radius"
-        android:id="@+id/seekBar_radius"
+        app:layout_constraintTop_toBottomOf="@+id/tv_page_size_value"
+        android:id="@+id/seekbar_page_size"
         app:layout_constraintLeft_toRightOf="@+id/gl_v_4"
         app:layout_constraintRight_toLeftOf="@+id/gl_v_5"
         android:layout_width="0dp"
-        android:min="1"
-        android:max="30"
+        android:min="0"
+        android:max="70"
         android:layout_height="wrap_content"
         />
     <TextView
-        android:id="@+id/tv_label_radius"
+        android:id="@+id/tv_page_size_label"
         android:textSize="24sp"
-        app:layout_constraintTop_toBottomOf="@+id/seekBar_radius"
+        app:layout_constraintTop_toBottomOf="@+id/seekbar_page_size"
         app:layout_constraintLeft_toRightOf="@+id/gl_v_4"
         app:layout_constraintRight_toLeftOf="@+id/gl_v_5"
         android:textColor="@color/black"

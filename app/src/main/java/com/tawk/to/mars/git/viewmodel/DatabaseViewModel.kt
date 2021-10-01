@@ -1,9 +1,8 @@
 package com.tawk.to.mars.git.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.tawk.to.mars.git.model.Preference
+import com.tawk.to.mars.git.model.preference.Preference
 import com.tawk.to.mars.git.model.database.TTDatabase
 import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.view.app.TawkTo

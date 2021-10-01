@@ -1,8 +1,7 @@
-package com.tawk.to.mars.git.model
+package com.tawk.to.mars.git.model.preference
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import com.tawk.to.mars.git.util.Constants
 import com.tawk.to.mars.git.util.SingletonHolder
 import com.tawk.to.mars.git.view.app.TawkTo
@@ -23,11 +22,7 @@ class Preference @Inject constructor(var app:TawkTo)
 
     fun setPageSize(pageSize:Int)
     {
-        if(pageSize>=Constants.MIN_PAGE_SIZE&&pageSize<=Constants.MAX_PAGE_SIZE)
-        {
-            editor.putInt(Constants.PREF_PAGE_SIZE,pageSize)
-        }
-
+        editor.putInt(Constants.PREF_PAGE_SIZE,pageSize).commit()
     }
 
 

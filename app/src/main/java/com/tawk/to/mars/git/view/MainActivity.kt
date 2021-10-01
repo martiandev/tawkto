@@ -4,6 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
+import android.os.PersistableBundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -15,9 +18,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.tawk.to.mars.git.R
 
 import com.tawk.to.mars.git.databinding.ActivityMainBinding
-import com.tawk.to.mars.git.model.entity.User
-import com.tawk.to.mars.git.model.network.request.Request
-import com.tawk.to.mars.git.model.network.request.UserRequest
+
 import com.tawk.to.mars.git.util.Constants
 import com.tawk.to.mars.git.view.app.TawkTo
 import com.tawk.to.mars.git.view.fragment.DetailFragment
@@ -28,7 +29,7 @@ import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 import javax.inject.Inject
 
-class MainActivity : AppCompatActivity(){
+class MainActivity() : AppCompatActivity(){
 
     //========================================= Variable ===========================================
     //----------------------------------------- Variable -------------------------------------------
@@ -36,7 +37,7 @@ class MainActivity : AppCompatActivity(){
     //----------------------------------------------------------------------------------------------
     //------------------------------------------ Fragment ------------------------------------------
     lateinit var splash:SplashFragment
-    lateinit var vp: VPFragment
+     var vp: VPFragment? =null
     lateinit var df: DetailFragment
     //----------------------------------------------------------------------------------------------
     //------------------------------------------- View ---------------------------------------------
@@ -49,9 +50,17 @@ class MainActivity : AppCompatActivity(){
     lateinit var  nvm: NetworkViewModel
     @Inject
     lateinit var  dvm: DatabaseViewModel
+
+    constructor(parcel: Parcel) : this() {
+        filter = parcel.readString().toString()
+    }
+
     //----------------------------------------------------------------------------------------------
     //==============================================================================================
     //======================================== LifeCycle ===========================================
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         (application as TawkTo).appComponent.inject(this)
@@ -60,8 +69,11 @@ class MainActivity : AppCompatActivity(){
         this.nvm = ViewModelProvider(this).get(NetworkViewModel::class.java)
         nvm.init(application as TawkTo)
         splash = SplashFragment()
-        vp = VPFragment()
-        df = DetailFragment()
+
+            vp = VPFragment()
+            df = DetailFragment()
+
+
         setSupportActionBar(binding.toolbar)
 
         binding.appBar.visibility= View.GONE
@@ -84,7 +96,8 @@ class MainActivity : AppCompatActivity(){
 
       }
     override fun onBackPressed() {
-        if(searchView!!.visibility==View.GONE)
+        invalidateOptionsMenu()
+        if(supportFragmentManager.findFragmentById(R.id.fc_main) is DetailFragment)
         {
             supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
@@ -92,15 +105,16 @@ class MainActivity : AppCompatActivity(){
             binding.toolbar.title = "TawkTo"
             binding.vDivider!!.visibility= View.VISIBLE
             binding.bottomNav!!.visibility= View.VISIBLE
-            if(searchView!=null)
-            {
-                searchView!!.visibility =View.VISIBLE
-            }
+            searchView!!.visibility =View.VISIBLE
             if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
             {
                 supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
             }
             setVP()
+        }
+        else
+        {
+            super.onBackPressed()
         }
     }
     //==============================================================================================
@@ -143,7 +157,11 @@ class MainActivity : AppCompatActivity(){
         nvm.userResult.observe(this, Observer {
             Log.d("NVM","RECEIVED2")
             supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            searchView!!.visibility =View.GONE
+            if(searchView!=null)
+            {
+                searchView!!.visibility =View.GONE
+            }
+
             binding.bottomNav!!.visibility = View.GONE
             binding.vDivider!!.visibility = View.GONE
             if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
@@ -185,11 +203,9 @@ class MainActivity : AppCompatActivity(){
     fun setVP()
     {
         supportActionBar!!.setDisplayHomeAsUpEnabled(false)
-
         if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
         {
             supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
-
         }
         supportFragmentManager.beginTransaction().add(R.id.fc_main, vp!!,"ViewPager").commit()
     }

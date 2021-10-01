@@ -20,7 +20,7 @@ import java.lang.ref.WeakReference
 class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
 
     lateinit var nvm:NetworkViewModel
-    lateinit var items:List<User>
+     var items:ArrayList<User> = ArrayList()
     lateinit var activity:FragmentActivity
 
     constructor(items:List<User>,tt:TawkTo,activity:FragmentActivity)
@@ -28,7 +28,8 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
         nvm = ViewModelProvider(activity).get(NetworkViewModel::class.java)
         nvm.init(tt as TawkTo)
         tt.appComponent.inject(this)
-        this.items = items
+
+        this.items.addAll(items)
     }
 
 
@@ -52,6 +53,12 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
        return items.size
     }
 
+    fun add(additional:List<User>)
+    {
+        var lastItem = items.size
+        items.addAll(additional)
+        notifyItemInserted(lastItem)
+    }
     class ViewHolder(view: View): RecyclerView.ViewHolder(view)
     {
         var iv_avatar:ImageView = view.findViewById(R.id.iv_avatar)

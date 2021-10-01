@@ -17,6 +17,7 @@ import retrofit2.Call
 import javax.inject.Inject
 import retrofit2.Callback
 import retrofit2.Response
+import java.net.UnknownHostException
 
 
 class NetworkViewModel : ViewModel(),UserImageRequest.Listener
@@ -26,6 +27,7 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
     @Inject
     lateinit var gson:Gson
 
+    var connection = MutableLiveData<Boolean>()
     var results = MutableLiveData<List<User>>()
     var userResult = MutableLiveData<User>()
     var isRequesting:Boolean = false
@@ -87,6 +89,7 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
                         call: Call<ResponseBody>,
                         response: Response<ResponseBody>
                     ) {
+                        connection.postValue(true)
                         val userArray: Array<User> =
                             gson.fromJson(response.body()!!.string(), Array<User>::class.java)
 
@@ -103,6 +106,10 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
                     }
 
                     override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                        if(t is UnknownHostException)
+                        {
+                            connection.postValue(false)
+                        }
                         isRequesting = false
                         next()
 
@@ -120,7 +127,8 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
                     response: Response<User>
                 ) {
 
-                    Log.d("NVM","SUCCESS")
+
+                    connection.postValue(true)
                     userResult.postValue(response.body())
                     isRequesting = false
                     next()
@@ -128,6 +136,10 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
                 }
 
                 override fun onFailure(call: Call<User>, t: Throwable) {
+                    if(t is UnknownHostException)
+                    {
+                        connection.postValue(false)
+                    }
                     isRequesting = false
                     next()
 
