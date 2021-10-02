@@ -10,7 +10,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
-class DatabaseViewModel :ViewModel{
+class DatabaseViewModel : ViewModel() {
 
     @Inject
     lateinit var db: TTDatabase
@@ -18,12 +18,15 @@ class DatabaseViewModel :ViewModel{
     lateinit var preference: Preference
     var results = MutableLiveData<List<User>>()
     var saved = MutableLiveData<List<User>>()
+    lateinit var tawkTo:TawkTo
 
 
-    constructor(tawkTo: TawkTo)
+    fun init(tawkTo:TawkTo)
     {
+        this.tawkTo = tawkTo
         tawkTo.appComponent.inject(this)
     }
+
 
 
     fun save(data:List<User>)
@@ -44,6 +47,8 @@ class DatabaseViewModel :ViewModel{
 
     }
 
+
+
     fun get(since:Int)
     {
         db.userDao()
@@ -63,7 +68,7 @@ class DatabaseViewModel :ViewModel{
 
                 },
                 {
-
+                    results.postValue(listOf())
                 }
             )
 

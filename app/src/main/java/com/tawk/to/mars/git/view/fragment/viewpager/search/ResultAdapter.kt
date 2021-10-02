@@ -59,6 +59,54 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
         items.addAll(additional)
         notifyItemInserted(lastItem)
     }
+    fun update(update:List<User>)
+    {
+        for(u in update)
+        {
+            var isDuplicate = false
+            var shouldReplace = false
+            var index = 0
+            for(user in items)
+            {
+                if(u.id==user.id)
+                {
+                    if(u.updated_at!!.after(user.updated_at))
+                    {
+                       shouldReplace = true
+                    }
+                    isDuplicate = true
+                    break
+                }
+                index++
+            }
+            if(isDuplicate)
+            {
+                if(shouldReplace)
+                {
+                    items.set(index,u)
+                }
+            }
+            else
+            {
+                items.add(u)
+                notifyItemInserted(items.size)
+            }
+        }
+
+    }
+
+    fun getLastID():Int
+    {
+        if(items.size>0)
+        {
+            return items.get(itemCount-1).id
+        }
+        else
+        {
+            return 0
+        }
+
+    }
     class ViewHolder(view: View): RecyclerView.ViewHolder(view)
     {
         var iv_avatar:ImageView = view.findViewById(R.id.iv_avatar)

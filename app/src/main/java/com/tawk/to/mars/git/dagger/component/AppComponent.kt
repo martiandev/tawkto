@@ -25,7 +25,6 @@ interface AppComponent {
     fun inject(networkViewModel: NetworkViewModel)
     fun inject(databaseViewModel: DatabaseViewModel)
     fun inject(preferenceViewModel: PreferenceViewModel)
-    fun inject(listFragment: ListFragment)
     fun inject(detailFragment: DetailFragment)
     fun inject(settingsFragment: SettingsFragment)
     fun inject(resultAdapter: ResultAdapter)

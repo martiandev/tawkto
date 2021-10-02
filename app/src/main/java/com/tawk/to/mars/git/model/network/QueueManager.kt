@@ -18,11 +18,19 @@ class QueueManager
     {
         queue.add(r)
     }
-    fun getNext(): Request
+    fun getNext(): Request?
     {
-        var next = queue.get(0)
-        queue.remove(next)
-        Log.i("QUEUE","NEXT -- "+queue.size)
-        return next
+        if(queue.size>0)
+        {
+            var next = queue.get(0)
+            queue.remove(next)
+            Log.i("QUEUE","NEXT -- "+queue.size)
+            return next
+        }
+        else
+        {
+            return null
+        }
+
     }
 }

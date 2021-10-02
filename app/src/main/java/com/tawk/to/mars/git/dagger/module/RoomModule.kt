@@ -15,10 +15,4 @@ class RoomModule @Inject constructor(var app: TawkTo)
            return TTDatabase.getInstance(app)
     }
 
-    @Provides
-    fun providesDatabaseViewModel():DatabaseViewModel{
-        return DatabaseViewModel(app)
-    }
-
-
 }

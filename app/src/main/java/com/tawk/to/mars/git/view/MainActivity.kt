@@ -48,9 +48,6 @@ class MainActivity() : AppCompatActivity(){
     //------------------------------------------ Dagger --------------------------------------------
     //Injected using Dagger2
     lateinit var  nvm: NetworkViewModel
-    @Inject
-    lateinit var  dvm: DatabaseViewModel
-
     constructor(parcel: Parcel) : this() {
         filter = parcel.readString().toString()
     }

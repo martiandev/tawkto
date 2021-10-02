@@ -11,6 +11,8 @@ interface GitHubService {
 
     @GET("users")
     fun requestUsers(@Query("since") since:Int): Call<ResponseBody>
+    @GET("users")
+    fun requestUsersLimit(@Query("since") since:Int,@Query("per_page") pageSize:Int): Call<ResponseBody>
     @GET("users/{username}")
     fun requestUser(@Path("username") username:String): Call<User>
 
