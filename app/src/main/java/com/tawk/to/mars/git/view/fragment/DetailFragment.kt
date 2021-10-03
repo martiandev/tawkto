@@ -61,10 +61,23 @@ class DetailFragment: Fragment() {
             binding!!.tvName.text=this.user!!.name
             binding!!.tvUsername.text=this.user!!.login
             binding!!.tvCompany.text=this.user!!.company
-            binding!!.tvRepos.text=""+this.user!!.publicRepos
-            binding!!.tvGist.text=""+this.user!!.publicGists
-            binding!!.tvFollowers.text=""+this.user!!.followers
-            binding!!.tvFollowing.text=""+this.user!!.following
+
+            binding!!.tvRepos.text=when(this.user!!.publicRepos==null){
+                false->""+this.user!!.publicRepos
+                true->"--"
+            }
+            binding!!.tvGist.text=when(this.user!!.publicGists==null){
+                false->""+this.user!!.publicGists
+                true->"--"
+            }
+            binding!!.tvFollowers.text=when(this.user!!.followers==null){
+                false->""+this.user!!.followers
+                true->"--"
+            }
+            binding!!.tvFollowing.text=when(this.user!!.following==null){
+                false->""+this.user!!.following
+                true->"--"
+            }
             binding!!.etNote.setText(when(this.user!!.note!=null){
                 true->user!!.note!!
                 false->""

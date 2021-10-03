@@ -24,48 +24,46 @@ import retrofit2.Response
 import java.net.UnknownHostException
 
 
-class NetworkViewModel : ViewModel(),UserImageRequest.Listener
-{
+class NetworkViewModel : ViewModel(),UserImageRequest.Listener {
     @Inject
     lateinit var gitHubService: GitHubService
+
     @Inject
-    lateinit var gson:Gson
+    lateinit var gson: Gson
+
     @Inject
     lateinit var preference: Preference
 
     var connection = MutableLiveData<Boolean>()
     var results = MutableLiveData<List<User>>()
     var userResult = MutableLiveData<User>()
-    var isRequesting:Boolean = false
-    lateinit var tawkTo:TawkTo
-    var onItemsLoadedCallBack:Callback<ResponseBody> = object :Callback<ResponseBody>{
+    var isRequesting: Boolean = false
+    lateinit var tawkTo: TawkTo
+    var onItemsLoadedCallBack: Callback<ResponseBody> = object : Callback<ResponseBody> {
         override fun onResponse(
             call: Call<ResponseBody>,
             response: Response<ResponseBody>
         ) {
-            if(response.code()==200)
-            {
+            if (response.code() == 200) {
                 connection.postValue(true)
                 val userArray: Array<User> =
                     gson.fromJson(response.body()!!.string(), Array<User>::class.java)
 
-                if(userArray.size>0)
-                {
+                if (userArray.size > 0) {
                     results.postValue(userArray.toList())
-                }
-                else
-                {
+                } else {
                     results.postValue(listOf())
                 }
-                isRequesting = false
 
+            } else {
+                connection.postValue(false)
             }
+            isRequesting = false
             next()
         }
 
         override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-            if(t is UnknownHostException)
-            {
+            if (t is UnknownHostException) {
                 connection.postValue(false)
             }
             isRequesting = false
@@ -75,7 +73,10 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
 
     }
 
-
+    fun setConnection(b: Boolean)
+    {
+        connection.postValue(b)
+    }
     fun init(tawkTo:TawkTo)
     {
         this.tawkTo = tawkTo
@@ -158,9 +159,16 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
                     call: Call<User>,
                     response: Response<User>
                 ) {
+                    if(response.code()==200)
+                    {
+                        connection.postValue(true)
+                        userResult.postValue(response.body())
 
-                    connection.postValue(true)
-                    userResult.postValue(response.body())
+                    }
+                    else
+                    {
+                        connection.postValue(false)
+                    }
                     isRequesting = false
                     next()
 

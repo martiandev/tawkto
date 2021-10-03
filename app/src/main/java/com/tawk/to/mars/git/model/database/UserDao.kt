@@ -32,6 +32,10 @@ abstract class UserDao {
     @Query("DELETE FROM User")
     abstract fun clear()
 
-
+    @Deprecated("Does not support searching within a string")
+    @Query(" SELECT * FROM User JOIN UserFTS ON User.login = UserFTS.login where UserFTS MATCH '%'||:query||'%'")
+    abstract fun searchFTS(query: String): List<User>
+    @Query(" SELECT * FROM User where login LIKE '%'||:query||'%' OR note LIKE '%'||:query||'%'")
+    abstract fun search(query: String): List<User>
 
 }

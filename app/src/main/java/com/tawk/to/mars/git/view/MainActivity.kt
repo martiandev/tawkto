@@ -1,6 +1,8 @@
 package com.tawk.to.mars.git.view
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -9,6 +11,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.SearchView
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -25,10 +28,41 @@ import com.tawk.to.mars.git.view.fragment.viewpager.VPFragment
 import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 import com.tawk.to.mars.git.viewmodel.SelectionViewModel
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.NetworkInfo
+
+import android.net.ConnectivityManager
+import com.tawk.to.mars.git.model.network.request.SinceRequest
+
 
 class MainActivity() : AppCompatActivity(){
 
     //========================================= Variable ===========================================
+    //---------------------------------------- BroadcastReceiver -----------------------------------
+    var receiver: BroadcastReceiver? = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val cm = context!!.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+            val netInfo = cm.activeNetworkInfo
+            if(networkViewModel!=null)
+            {
+                if(netInfo==null)
+                {
+                    networkViewModel.setConnection(false)
+                }
+                else
+                {
+                    networkViewModel.setConnection(netInfo.isConnected)
+                    if(netInfo.isConnected)
+                    {
+                        networkViewModel.request(SinceRequest(0))
+                    }
+                }
+            }
+
+        }
+    }
+    //----------------------------------------------------------------------------------------------
     //----------------------------------------- Variable -------------------------------------------
     var filter:String = ""
     //----------------------------------------------------------------------------------------------
@@ -43,6 +77,7 @@ class MainActivity() : AppCompatActivity(){
     var menu: Menu? = null
 
     lateinit var  databaseViewModel: DatabaseViewModel
+    lateinit var  networkViewModel: NetworkViewModel
     lateinit var  selectionViewModel: SelectionViewModel
     //----------------------------------------------------------------------------------------------
     //==============================================================================================
@@ -71,6 +106,19 @@ class MainActivity() : AppCompatActivity(){
             setVP()
         }
       }
+
+    override fun onResume() {
+        super.onResume()
+        val filter = IntentFilter()
+        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE")
+        registerReceiver(receiver, filter)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(receiver)
+    }
+
     override fun onBackPressed() {
 
         var fragment = supportFragmentManager.findFragmentById(R.id.fc_main)
@@ -115,6 +163,7 @@ class MainActivity() : AppCompatActivity(){
         searchView!!.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 filter = query
+                databaseViewModel.search(query)
                 return true
             }
 
@@ -122,6 +171,11 @@ class MainActivity() : AppCompatActivity(){
                 return true
             }
         })
+        searchView!!.setOnCloseListener {
+            databaseViewModel.get(0)
+            false
+        }
+
 
         return true
     }
@@ -131,6 +185,8 @@ class MainActivity() : AppCompatActivity(){
     {
         this.databaseViewModel = ViewModelProvider(this).get(DatabaseViewModel::class.java)
         this.selectionViewModel = ViewModelProvider(this).get(SelectionViewModel::class.java)
+        this.networkViewModel = ViewModelProvider(this).get(NetworkViewModel::class.java)
+        this.networkViewModel.init(application as TawkTo)
         this.databaseViewModel.init(application as TawkTo)
 
         this.selectionViewModel.selected!!.observe(this, Observer {

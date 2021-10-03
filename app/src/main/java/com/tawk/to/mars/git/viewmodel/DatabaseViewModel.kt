@@ -1,5 +1,6 @@
 package com.tawk.to.mars.git.viewmodel
 
+import android.app.DownloadManager
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -25,6 +26,7 @@ class DatabaseViewModel : ViewModel() {
     @Inject
     lateinit var preference: Preference
     var results = MutableLiveData<List<User>>()
+    var search = MutableLiveData<List<User>>()
     var userResult = MutableLiveData<User>()
     var savedNote = MutableLiveData<User>()
     var saved = MutableLiveData<List<User>>()
@@ -100,6 +102,17 @@ class DatabaseViewModel : ViewModel() {
             withContext(Dispatchers.Main)
             {
                 results.postValue(users)
+            }
+        }
+
+    }
+    fun search(query:String)
+    {
+        CoroutineScope(Dispatchers.IO).launch{
+            val users = db.userDao().search(query)
+            withContext(Dispatchers.Main)
+            {
+                search.postValue(users)
             }
         }
 

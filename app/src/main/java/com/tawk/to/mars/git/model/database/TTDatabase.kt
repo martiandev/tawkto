@@ -6,13 +6,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.tawk.to.mars.git.model.entity.User
+import com.tawk.to.mars.git.model.entity.UserFTS
 import com.tawk.to.mars.git.model.entity.converter.DateConverter
 import com.tawk.to.mars.git.util.SingletonHolder
 import com.tawk.to.mars.git.view.app.TawkTo
 
 @TypeConverters(DateConverter::class)
 @Database(entities = arrayOf(
-    User::class
+    User::class,
+    UserFTS::class
 ),
   version = 1
 )

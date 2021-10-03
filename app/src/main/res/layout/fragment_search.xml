@@ -27,7 +27,7 @@
                 android:textSize="16sp"
                 android:padding="8dp"
                 android:visibility="gone"
-                android:text="No network"
+                android:text="Could not reach server"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </androidx.constraintlayout.widget.ConstraintLayout>

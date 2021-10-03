@@ -25,6 +25,7 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
     lateinit var nvm: NetworkViewModel
     lateinit var dvm: DatabaseViewModel
     lateinit var adapter:ResultAdapter
+    var isSearch = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,25 +43,47 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.i("ListFragment","onCreate")
         binding!!.rvSearch.layoutManager = LinearLayoutManager(requireActivity())
         binding!!.rvSearch.layoutManager = LinearLayoutManager(requireActivity())
         binding!!.scroll.setOnScrollChangeListener(this)
         this.adapter = ResultAdapter(listOf(),requireActivity().application as TawkTo,requireActivity())
         binding!!.rvSearch.adapter = adapter
         dvm.results.observe(requireActivity(), Observer {
+            if(isSearch)
+            {
+                isSearch = false
+                this.adapter = ResultAdapter(listOf(),requireActivity().application as TawkTo,requireActivity())
+                binding!!.rvSearch.adapter = adapter
+            }
             if(it.size>0)
             {
                 setResults(it)
             }
-            Log.i("ListFragment","dvmRecdivef")
             nvm.request(SinceRequest(adapter.getLastID()))
         })
         nvm.results.observe(requireActivity(), Observer {
             dvm.save(it)
             setResults(it)
         })
-        Log.i("ListFragment","onViewCreatedNextPage")
+        dvm.search.observe(requireActivity(), Observer {
+            isSearch = true
+            this.adapter = ResultAdapter(listOf(),requireActivity().application as TawkTo,requireActivity())
+            binding!!.rvSearch.adapter = adapter
+            if(it.size>0)
+            {
+                setResults(it)
+            }
+
+        })
+        nvm.connection.observe(requireActivity(), Observer {
+            binding!!.tvInternetWarning.visibility = when(it)
+            {
+                true->View.GONE
+                false->View.VISIBLE
+            }
+            binding.loading.visibility = View.GONE
+
+        })
         getNextPage()
 
     }
@@ -88,8 +111,11 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
     override fun onScrollChange(v: NestedScrollView?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int) {
         if (scrollY == v!!.getChildAt(0).getMeasuredHeight() - v!!.getMeasuredHeight()) {
             Log.i("ListFragment","onScroll")
+            if(!isSearch)
+            {
+                getNextPage()
 
-            getNextPage()
+            }
 
         }
 
