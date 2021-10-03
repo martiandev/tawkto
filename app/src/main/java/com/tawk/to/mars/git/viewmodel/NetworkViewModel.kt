@@ -40,19 +40,23 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
             call: Call<ResponseBody>,
             response: Response<ResponseBody>
         ) {
-            connection.postValue(true)
-            val userArray: Array<User> =
-                gson.fromJson(response.body()!!.string(), Array<User>::class.java)
+            if(response.code()==200)
+            {
+                connection.postValue(true)
+                val userArray: Array<User> =
+                    gson.fromJson(response.body()!!.string(), Array<User>::class.java)
 
-            if(userArray.size>0)
-            {
-                results.postValue(userArray.toList())
+                if(userArray.size>0)
+                {
+                    results.postValue(userArray.toList())
+                }
+                else
+                {
+                    results.postValue(listOf())
+                }
+                isRequesting = false
+
             }
-            else
-            {
-                results.postValue(listOf())
-            }
-            isRequesting = false
             next()
         }
 
@@ -83,17 +87,19 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
 
     private fun next()
     {
-
         if(!isRequesting)
         {
+
             if(QueueManager.getInstance(tawkTo).queue.size>0)
             {
                 isRequesting = true
                 var request =  QueueManager.getInstance(tawkTo).getNext()
                 if(request!=null)
                 {
+
                     if(request is SinceRequest)
                     {
+
                         if(preference.getPageSize()>30)
                         {
                             requestUsersFrom(request.id!!,preference.getPageSize())
@@ -106,10 +112,12 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
                     }
                     else if(request is UserRequest)
                     {
-                        search(request.login!!,request)
+
+                        search(request.login!!)
                     }
                     else if(request is UserImageRequest)
                     {
+
                         request.start(this)
                     }
                     else
@@ -119,10 +127,7 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
                     }
                 }
             }
-            else
-            {
-                Log.i("QUEUE","Queue is empty")
-            }
+
 
         }
     }
@@ -139,8 +144,10 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
             .requestUsers(id)
                 .enqueue(onItemsLoadedCallBack)
     }
-    private fun search(login:String,r: Request)
+    private fun search(login:String)
     {
+        Log.i("DF","USER:"+login)
+
         gitHubService
             .requestUser(login)
             .enqueue(object:Callback<User>{
@@ -148,7 +155,6 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
                     call: Call<User>,
                     response: Response<User>
                 ) {
-
 
                     connection.postValue(true)
                     userResult.postValue(response.body())

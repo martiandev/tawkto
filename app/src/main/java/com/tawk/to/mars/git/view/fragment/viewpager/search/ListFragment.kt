@@ -1,11 +1,9 @@
 package com.tawk.to.mars.git.view.fragment.viewpager.search
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -13,7 +11,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.tawk.to.mars.git.databinding.FragmentSearchBinding
 import com.tawk.to.mars.git.model.entity.User
-import com.tawk.to.mars.git.model.network.request.Request
 import com.tawk.to.mars.git.model.network.request.SinceRequest
 import com.tawk.to.mars.git.view.app.TawkTo
 import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
@@ -48,24 +45,16 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
         this.adapter = ResultAdapter(listOf(),requireActivity().application as TawkTo,requireActivity())
         binding!!.rvSearch.adapter = adapter
         dvm.results.observe(requireActivity(), Observer {
-            if(it.size<1)
+            if(it.size>0)
             {
-                Log.i("LF-Frag","No Local Data Loaded")
-            }
-            else
-            {
-                Log.i("LF-Frag","Local Data Loaded")
                 setResults(it)
-                binding.loading.visibility = View.GONE
             }
+
         })
         nvm.results.observe(requireActivity(), Observer {
-            Log.i("LF-Frag","Remote Data Loaded")
-                dvm.save(it)
-            Log.i("LF-Frag","Loading from Local:"+adapter.getLastID())
-                dvm.get(adapter.getLastID())
-            //setResults(it)
-            binding.loading.visibility = View.GONE
+            binding.loading.visibility = View.VISIBLE
+            dvm.save(it)
+
         })
         getNextPage()
 
@@ -75,12 +64,12 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
         if (binding != null) {
             if(users.size>0)
             {
-                adapter.add(users)
+                adapter.update(users)
+                binding!!.loading.visibility = View.GONE
             }
-
         }
-
     }
+
 
 
     fun getNextPage() {
@@ -92,7 +81,6 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
 
     override fun onScrollChange(v: NestedScrollView?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int) {
         if (scrollY == v!!.getChildAt(0).getMeasuredHeight() - v!!.getMeasuredHeight()) {
-            Log.i("LF-Frag","REQUESTINGGGG")
             getNextPage()
 
         }

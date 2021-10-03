@@ -1,5 +1,6 @@
 package com.tawk.to.mars.git.view.fragment.viewpager.search
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,19 +15,22 @@ import com.tawk.to.mars.git.model.network.request.UserImageRequest
 import com.tawk.to.mars.git.model.network.request.UserImageRequest.Listener
 import com.tawk.to.mars.git.model.network.request.UserRequest
 import com.tawk.to.mars.git.view.app.TawkTo
+import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 import java.lang.ref.WeakReference
 
 class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
 
     lateinit var nvm:NetworkViewModel
+    lateinit var dvm:DatabaseViewModel
      var items:ArrayList<User> = ArrayList()
-    lateinit var activity:FragmentActivity
 
     constructor(items:List<User>,tt:TawkTo,activity:FragmentActivity)
     {
         nvm = ViewModelProvider(activity).get(NetworkViewModel::class.java)
+        dvm = ViewModelProvider(activity).get(DatabaseViewModel::class.java)
         nvm.init(tt as TawkTo)
+        dvm.init(tt as TawkTo)
         tt.appComponent.inject(this)
 
         this.items.addAll(items)
@@ -41,39 +45,38 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         var user = items.get(position)
         holder.itemView.setOnClickListener {
+            Log.i("DF","Initiating Search:"+user.id+" - "+user.login)
 
-            nvm.request(UserRequest(user!!.login!!))
+            dvm.getUser(user.id)
         }
         holder.tv_login.text = user.login
         var imageLoader = UserImageRequest(user.id!!,holder.iv_avatar.context,user.avatarUrl!!, WeakReference(holder.iv_avatar) )
         nvm.request(imageLoader)
+        holder.iv_edit.visibility  = when(user.note==null)
+        {
+            true->View.GONE
+            false->when(user.note!!.length>0)
+            {
+                true->View.VISIBLE
+                false->View.GONE
+            }
+        }
     }
 
     override fun getItemCount(): Int {
        return items.size
     }
-
-    fun add(additional:List<User>)
-    {
-        var lastItem = items.size
-        items.addAll(additional)
-        notifyItemInserted(lastItem)
-    }
+    
     fun update(update:List<User>)
     {
         for(u in update)
         {
             var isDuplicate = false
-            var shouldReplace = false
             var index = 0
             for(user in items)
             {
                 if(u.id==user.id)
                 {
-                    if(u.updated_at!!.after(user.updated_at))
-                    {
-                       shouldReplace = true
-                    }
                     isDuplicate = true
                     break
                 }
@@ -81,10 +84,8 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
             }
             if(isDuplicate)
             {
-                if(shouldReplace)
-                {
-                    items.set(index,u)
-                }
+                items.set(index,u)
+                notifyItemChanged(index)
             }
             else
             {
@@ -111,6 +112,7 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
     {
         var iv_avatar:ImageView = view.findViewById(R.id.iv_avatar)
         var tv_login:TextView = view.findViewById(R.id.tv_login)
+        var iv_edit:ImageView = view.findViewById(R.id.iv_edit)
     }
 
 

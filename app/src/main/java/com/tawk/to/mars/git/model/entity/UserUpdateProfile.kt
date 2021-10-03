@@ -2,7 +2,7 @@ package com.tawk.to.mars.git.model.entity
 
 import java.util.*
 
-class UserUpdate {
+class UserUpdateProfile {
     var id:Int ?= null
     var login:String ?= null
     var nodeId:String ?= null
@@ -21,7 +21,20 @@ class UserUpdate {
     var receivedEventsUrl:String ?= null
     var type:String ?= null
     var isSiteAdmin:Boolean ?= null
-
+    var name:String ?= null
+    var company:String ?= null
+    var blog:String ?= null
+    var location:String ?= null
+    var email:String ?= null
+    var hireable:Boolean ?= null
+    var bio:String ?= null
+    var twitterUsername:String ?= null
+    var publicRepos:Int ?= null
+    var publicGists:Int ?= null
+    var followers:Int ?= null
+    var following:Int ?= null
+    var created_at: Date?= null
+    var updated_at: Date?= null
     constructor(user:User)
     {
         this.id = user.id
@@ -42,6 +55,19 @@ class UserUpdate {
         this.receivedEventsUrl = user.receivedEventsUrl
         this.type = user.type
         this.isSiteAdmin = user.isSiteAdmin
-
+        this.name = user.name
+        this.company = user.company
+        this.blog = user.blog
+        this.location = user.location
+        this.email = user.email
+        this.hireable = user.hireable
+        this.bio = user.bio
+        this.twitterUsername = user.twitterUsername
+        this.publicRepos = user.publicRepos
+        this.publicGists = user.publicGists
+        this.followers = user.followers
+        this.following = user.following
+        this.created_at = user.created_at
+        this.updated_at = user.updated_at
     }
 }

@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.tawk.to.mars.git.R
 
 import com.tawk.to.mars.git.databinding.ActivityMainBinding
+import com.tawk.to.mars.git.model.network.request.UserRequest
 
 import com.tawk.to.mars.git.util.Constants
 import com.tawk.to.mars.git.view.app.TawkTo
@@ -44,58 +45,45 @@ class MainActivity() : AppCompatActivity(){
     private lateinit var binding: ActivityMainBinding
     var searchView: SearchView? = null
     var menu: Menu? = null
-    //----------------------------------------------------------------------------------------------
-    //------------------------------------------ Dagger --------------------------------------------
-    //Injected using Dagger2
-    lateinit var  nvm: NetworkViewModel
-    constructor(parcel: Parcel) : this() {
-        filter = parcel.readString().toString()
-    }
 
+    lateinit var  nvm: NetworkViewModel
+    lateinit var  dvm: DatabaseViewModel
     //----------------------------------------------------------------------------------------------
     //==============================================================================================
     //======================================== LifeCycle ===========================================
-
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         (application as TawkTo).appComponent.inject(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         this.nvm = ViewModelProvider(this).get(NetworkViewModel::class.java)
+        this.dvm = ViewModelProvider(this).get(DatabaseViewModel::class.java)
         nvm.init(application as TawkTo)
+        dvm.init(application as TawkTo)
         splash = SplashFragment()
-
-            vp = VPFragment()
-            df = DetailFragment()
-
-
+        vp = VPFragment()
+        df = DetailFragment()
         setSupportActionBar(binding.toolbar)
-
         binding.appBar.visibility= View.GONE
         binding.bottomNav.visibility = View.GONE
         binding.vDivider.visibility = View.GONE
         setUpViewModel()
         if (shouldRequestPermission())
         {
-            //if not granted launch splash fragment to request for permissions
             supportFragmentManager.beginTransaction().add(R.id.fc_main,splash,"Splash").commit()
         }
         else
         {
-            //if granted attach view pager and show appbar and bottom navbar
             showNavigation()
             setBottomNavigation()
             setVP()
         }
-
-
       }
     override fun onBackPressed() {
         invalidateOptionsMenu()
         if(supportFragmentManager.findFragmentById(R.id.fc_main) is DetailFragment)
         {
+            df.clear()
             supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
             binding.toolbar.visibility= View.VISIBLE
@@ -150,24 +138,27 @@ class MainActivity() : AppCompatActivity(){
     //======================================= View =================================================
     fun setUpViewModel()
     {
-        Log.d("NVM","VIEW MODEL SETUP")
-        nvm.userResult.observe(this, Observer {
-            Log.d("NVM","RECEIVED2")
+        dvm.userResult.observe(this, Observer {
+
             supportActionBar!!.setDisplayHomeAsUpEnabled(true)
             if(searchView!=null)
             {
                 searchView!!.visibility =View.GONE
             }
-
             binding.bottomNav!!.visibility = View.GONE
             binding.vDivider!!.visibility = View.GONE
+
             if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
             {
                 supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
             }
+
             supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,"selection").commit()
             binding.toolbar.title = it.login
-            df!!.updateUser(it)
+            Log.i("DF","Initiating Search:"+it!!.login!!)
+
+//            df!!.updateUser(it)
+            nvm.request(UserRequest(it!!.login!!))
         })
     }
 
