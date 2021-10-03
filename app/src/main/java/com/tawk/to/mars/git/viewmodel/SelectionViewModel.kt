@@ -6,7 +6,7 @@ import com.tawk.to.mars.git.model.entity.User
 
 class SelectionViewModel: ViewModel() {
 
-    var selected:MutableLiveData<User>? = null
+    var selected = MutableLiveData<User>()
 
     fun select(user:User)
     {

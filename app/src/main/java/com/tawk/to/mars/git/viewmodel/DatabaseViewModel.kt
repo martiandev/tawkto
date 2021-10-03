@@ -8,6 +8,7 @@ import com.tawk.to.mars.git.model.preference.Preference
 import com.tawk.to.mars.git.model.database.TTDatabase
 import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.model.entity.UserUpdate
+import com.tawk.to.mars.git.model.entity.UserUpdateNote
 import com.tawk.to.mars.git.model.entity.UserUpdateProfile
 import com.tawk.to.mars.git.view.app.TawkTo
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -20,51 +21,56 @@ class DatabaseViewModel : ViewModel() {
 
     @Inject
     lateinit var db: TTDatabase
+
     @Inject
     lateinit var preference: Preference
     var results = MutableLiveData<List<User>>()
     var userResult = MutableLiveData<User>()
+    var savedNote = MutableLiveData<User>()
     var saved = MutableLiveData<List<User>>()
-    lateinit var tawkTo:TawkTo
+    lateinit var tawkTo: TawkTo
 
-    fun init(tawkTo:TawkTo)
-    {
+    fun init(tawkTo: TawkTo) {
         this.tawkTo = tawkTo
         tawkTo.appComponent.inject(this)
     }
 
-    fun getUser(id:Int)
-    {
+    fun getUser(id: Int) {
         CoroutineScope(Dispatchers.IO).async {
             var user = db.userDao().get(id)
-            Log.i("DF","VM ID:"+id)
+            Log.i("DF", "VM ID:" + id)
 
             withContext(Dispatchers.Main)
             {
-                if(user!=null)
-                {
-                    Log.i("DF","VM USER:"+user.id)
-                    Log.i("DF","VM USER:"+user.login)
+                if (user != null) {
+                    Log.i("DF", "VM USER:" + user.id)
+                    Log.i("DF", "VM USER:" + user.login)
 
                     userResult.postValue(user)
-//                    userResult.value=user
                 }
 
             }
         }
     }
 
+    fun saveNote(id: Int, note: String)
+    {
+        CoroutineScope(Dispatchers.IO).launch {
+            db.userDao().update(UserUpdateNote(id,note))
+            var u = db.userDao().get(id)
+            withContext(Dispatchers.Main)
+            {
+                savedNote.postValue(u!!)
+            }
+        }
+    }
     fun saveUser (data:User)
     {
-        CoroutineScope(Dispatchers.IO).launch{
+        CoroutineScope(Dispatchers.IO).launch {
             db.userDao().updateProfile(UserUpdateProfile(data))
 
-            val users = db.userDao().getSince(data.id,1)
-                withContext(Dispatchers.Main)
-                {
-                    results.postValue(users)
-                }
-            }
+
+        }
 
     }
 
@@ -79,11 +85,6 @@ class DatabaseViewModel : ViewModel() {
                     {
                         db.userDao().update(UserUpdate(user))
                     }
-                }
-                val users = db.userDao().getSince(data[0].id, preference.getPageSize())
-                withContext(Dispatchers.Main)
-                {
-                    results.postValue(users)
                 }
             }
 

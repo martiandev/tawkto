@@ -4,9 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
-import android.os.PersistableBundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -24,11 +21,10 @@ import com.tawk.to.mars.git.util.Constants
 import com.tawk.to.mars.git.view.app.TawkTo
 import com.tawk.to.mars.git.view.fragment.DetailFragment
 import com.tawk.to.mars.git.view.fragment.SplashFragment
-import com.tawk.to.mars.git.view.fragment.viewpager.ClickListener
 import com.tawk.to.mars.git.view.fragment.viewpager.VPFragment
 import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
-import javax.inject.Inject
+import com.tawk.to.mars.git.viewmodel.SelectionViewModel
 
 class MainActivity() : AppCompatActivity(){
 
@@ -46,8 +42,8 @@ class MainActivity() : AppCompatActivity(){
     var searchView: SearchView? = null
     var menu: Menu? = null
 
-    lateinit var  nvm: NetworkViewModel
-    lateinit var  dvm: DatabaseViewModel
+    lateinit var  databaseViewModel: DatabaseViewModel
+    lateinit var  selectionViewModel: SelectionViewModel
     //----------------------------------------------------------------------------------------------
     //==============================================================================================
     //======================================== LifeCycle ===========================================
@@ -55,19 +51,15 @@ class MainActivity() : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         (application as TawkTo).appComponent.inject(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        this.nvm = ViewModelProvider(this).get(NetworkViewModel::class.java)
-        this.dvm = ViewModelProvider(this).get(DatabaseViewModel::class.java)
-        nvm.init(application as TawkTo)
-        dvm.init(application as TawkTo)
-        splash = SplashFragment()
-        vp = VPFragment()
-        df = DetailFragment()
-        setSupportActionBar(binding.toolbar)
         binding.appBar.visibility= View.GONE
         binding.bottomNav.visibility = View.GONE
         binding.vDivider.visibility = View.GONE
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+
         setUpViewModel()
+        setUpFragments()
+
         if (shouldRequestPermission())
         {
             supportFragmentManager.beginTransaction().add(R.id.fc_main,splash,"Splash").commit()
@@ -80,27 +72,26 @@ class MainActivity() : AppCompatActivity(){
         }
       }
     override fun onBackPressed() {
-        invalidateOptionsMenu()
-        if(supportFragmentManager.findFragmentById(R.id.fc_main) is DetailFragment)
-        {
-            df.clear()
-            supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
-            binding.toolbar.visibility= View.VISIBLE
-            binding.toolbar.title = "TawkTo"
-            binding.vDivider!!.visibility= View.VISIBLE
-            binding.bottomNav!!.visibility= View.VISIBLE
-            searchView!!.visibility =View.VISIBLE
-            if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
+        var fragment = supportFragmentManager.findFragmentById(R.id.fc_main)
+        if(fragment!=null)
+        {
+            if(fragment is DetailFragment)
             {
-                supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
+                (fragment as DetailFragment).save()
+                setVP()
             }
-            setVP()
+            else
+            {
+                super.onBackPressed()
+            }
         }
         else
         {
             super.onBackPressed()
         }
+
+
     }
     //==============================================================================================
     //========================================= View ===============================================
@@ -138,30 +129,37 @@ class MainActivity() : AppCompatActivity(){
     //======================================= View =================================================
     fun setUpViewModel()
     {
-        dvm.userResult.observe(this, Observer {
+        this.databaseViewModel = ViewModelProvider(this).get(DatabaseViewModel::class.java)
+        this.selectionViewModel = ViewModelProvider(this).get(SelectionViewModel::class.java)
+        this.databaseViewModel.init(application as TawkTo)
 
+        this.selectionViewModel.selected!!.observe(this, Observer {
             supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            if(searchView!=null)
+            if(this.searchView!=null)
             {
-                searchView!!.visibility =View.GONE
+                this.searchView!!.visibility =View.GONE
             }
-            binding.bottomNav!!.visibility = View.GONE
-            binding.vDivider!!.visibility = View.GONE
-
+            this.binding.bottomNav!!.visibility = View.GONE
+            this.binding.vDivider!!.visibility = View.GONE
             if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
             {
                 supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
             }
-
             supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,"selection").commit()
             binding.toolbar.title = it.login
-            Log.i("DF","Initiating Search:"+it!!.login!!)
+//            databaseViewModel.get(it.id)
+            databaseViewModel.getUser(it.id)
 
-//            df!!.updateUser(it)
-            nvm.request(UserRequest(it!!.login!!))
+
         })
-    }
 
+    }
+    fun setUpFragments()
+    {
+        splash = SplashFragment()
+        vp = VPFragment()
+        df = DetailFragment()
+    }
     fun setBottomNavigation()
     {
         menu = binding.bottomNav!!.menu
@@ -190,12 +188,23 @@ class MainActivity() : AppCompatActivity(){
     }
     fun setVP()
     {
-        supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+
         if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
         {
             supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
         }
         supportFragmentManager.beginTransaction().add(R.id.fc_main, vp!!,"ViewPager").commit()
+        supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+        binding.toolbar.visibility= View.VISIBLE
+        binding.toolbar.title = "TawkTo"
+        binding.vDivider!!.visibility= View.VISIBLE
+        binding.bottomNav!!.visibility= View.VISIBLE
+        if(searchView!=null)
+        {
+            searchView!!.visibility =View.VISIBLE
+        }
+
+        invalidateOptionsMenu()
     }
     //==============================================================================================
     //======================================= Permission ===========================================

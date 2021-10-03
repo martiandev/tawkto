@@ -3,6 +3,7 @@ package com.tawk.to.mars.git.model.database
 import androidx.room.*
 import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.model.entity.UserUpdate
+import com.tawk.to.mars.git.model.entity.UserUpdateNote
 import com.tawk.to.mars.git.model.entity.UserUpdateProfile
 import io.reactivex.Completable
 import io.reactivex.Single
@@ -17,6 +18,8 @@ abstract class UserDao {
     abstract fun updateProfile(obj:UserUpdateProfile)
     @Update(entity = User::class)
     abstract fun update(obj:UserUpdate)
+    @Update(entity = User::class)
+    abstract fun update(obj: UserUpdateNote)
 
     @Query("SELECT * FROM User where id > :since LIMIT :limit")
     abstract fun getSince(since:Int, limit:Int):List<User>

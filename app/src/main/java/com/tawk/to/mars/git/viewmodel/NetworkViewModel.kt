@@ -1,5 +1,7 @@
 package com.tawk.to.mars.git.viewmodel
 
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,6 +14,7 @@ import com.tawk.to.mars.git.model.network.request.SinceRequest
 import com.tawk.to.mars.git.model.network.request.UserImageRequest
 import com.tawk.to.mars.git.model.network.request.UserRequest
 import com.tawk.to.mars.git.model.preference.Preference
+import com.tawk.to.mars.git.util.Constants
 import com.tawk.to.mars.git.view.app.TawkTo
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -134,14 +137,14 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
     private fun requestUsersFrom(id:Int,limit:Int)
     {
         gitHubService
-            .requestUsersLimit(id,limit)
+            .requestUsersLimit(id,limit,Constants.TOKEN)
             .enqueue(onItemsLoadedCallBack)
     }
 
     private fun requestUsersFrom(id:Int)
     {
         gitHubService
-            .requestUsers(id)
+            .requestUsers(id,Constants.TOKEN)
                 .enqueue(onItemsLoadedCallBack)
     }
     private fun search(login:String)
@@ -149,7 +152,7 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener
         Log.i("DF","USER:"+login)
 
         gitHubService
-            .requestUser(login)
+            .requestUser(login,Constants.TOKEN)
             .enqueue(object:Callback<User>{
                 override fun onResponse(
                     call: Call<User>,

@@ -6,34 +6,59 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.tawk.to.mars.git.R
 import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.model.network.request.UserImageRequest
-import com.tawk.to.mars.git.model.network.request.UserImageRequest.Listener
-import com.tawk.to.mars.git.model.network.request.UserRequest
 import com.tawk.to.mars.git.view.app.TawkTo
 import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
+import com.tawk.to.mars.git.viewmodel.SelectionViewModel
 import java.lang.ref.WeakReference
 
 class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
 
-    lateinit var nvm:NetworkViewModel
-    lateinit var dvm:DatabaseViewModel
+    lateinit var networkViewModel:NetworkViewModel
+    lateinit var databaseViewModel: DatabaseViewModel
+    lateinit var selectionViewModel: SelectionViewModel
      var items:ArrayList<User> = ArrayList()
+    lateinit var activity:FragmentActivity
+
+
 
     constructor(items:List<User>,tt:TawkTo,activity:FragmentActivity)
     {
-        nvm = ViewModelProvider(activity).get(NetworkViewModel::class.java)
-        dvm = ViewModelProvider(activity).get(DatabaseViewModel::class.java)
-        nvm.init(tt as TawkTo)
-        dvm.init(tt as TawkTo)
         tt.appComponent.inject(this)
-
+        this.activity = activity
+        networkViewModel = ViewModelProvider(activity).get(NetworkViewModel::class.java)
+        selectionViewModel = ViewModelProvider(activity).get(SelectionViewModel::class.java)
+        databaseViewModel = ViewModelProvider(activity).get(DatabaseViewModel::class.java)
+        databaseViewModel.init(tt as TawkTo)
+        networkViewModel.init(tt as TawkTo)
         this.items.addAll(items)
+    }
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        databaseViewModel.savedNote.observe(activity, Observer {
+            var ctr =0
+            for(u in items)
+            {
+                if(u.id==it.id)
+                {
+                    items.set(ctr,it)
+                    notifyItemChanged(ctr)
+                    break
+                }
+                ctr++
+            }
+        })
+
+
     }
 
 
@@ -45,13 +70,12 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         var user = items.get(position)
         holder.itemView.setOnClickListener {
-            Log.i("DF","Initiating Search:"+user.id+" - "+user.login)
-
-            dvm.getUser(user.id)
+            selectionViewModel.select(user)
         }
+
         holder.tv_login.text = user.login
-        var imageLoader = UserImageRequest(user.id!!,holder.iv_avatar.context,user.avatarUrl!!, WeakReference(holder.iv_avatar) )
-        nvm.request(imageLoader)
+        var imageLoader = UserImageRequest(user.id!!,holder.iv_avatar.context,user.avatarUrl!!, WeakReference(holder.iv_avatar),position)
+        networkViewModel.request(imageLoader)
         holder.iv_edit.visibility  = when(user.note==null)
         {
             true->View.GONE
@@ -110,10 +134,10 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
     }
     class ViewHolder(view: View): RecyclerView.ViewHolder(view)
     {
+
         var iv_avatar:ImageView = view.findViewById(R.id.iv_avatar)
         var tv_login:TextView = view.findViewById(R.id.tv_login)
         var iv_edit:ImageView = view.findViewById(R.id.iv_edit)
     }
-
 
 }

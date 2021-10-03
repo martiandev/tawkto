@@ -1,6 +1,9 @@
 package com.tawk.to.mars.git.model.network.request
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.widget.ImageView
@@ -11,7 +14,7 @@ import java.io.*
 import java.lang.ref.WeakReference
 import java.net.URL
 
-class UserImageRequest(val id:Int, val context:Context, val url:String, val imageView:WeakReference<ImageView>,): Request()
+class UserImageRequest(val id:Int, val context:Context, val url:String, val imageView:WeakReference<ImageView>,val position:Int): Request()
 {
     var dir:File ? = null
     var result:File ? = null
@@ -88,16 +91,36 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
     {
         try {
 
-            Handler(Looper.getMainLooper()).post {
+
+
                 if(imageView.get()!=null)
                 {
-                    Glide.with(context)
-                        .load(result!!.absolutePath)
-                        .placeholder(R.drawable.no)
-                        .into(imageView.get()!!)
+                    if((position+1)%4==0&&position>0)
+                    {
+                        val opts = BitmapFactory.Options()
+                        opts.inJustDecodeBounds = false
+                        var bmp:Bitmap = BitmapFactory.decodeStream(FileInputStream(result!!.absolutePath), null, opts)!!
+                        bmp = doInvert(bmp)!!
+                        Handler(Looper.getMainLooper()).post {
+                            Glide.with(context)
+                                .load(bmp)
+                                .placeholder(R.drawable.no)
+                                .into(imageView.get()!!)
+                        }
+                    }
+                    else
+                    {
+                        Handler(Looper.getMainLooper()).post {
+                            Glide.with(context)
+                                .load(result!!.absolutePath)
+                                .placeholder(R.drawable.no)
+                                .into(imageView.get()!!)
+                        }
+                    }
+
                 }
 
-            }
+
             listener!!.onDone()
 
         }
@@ -109,6 +132,33 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
         }
 
     }
+
+
+    suspend fun doInvert(src: Bitmap): Bitmap? {
+        val bmOut = Bitmap.createBitmap(src.width, src.height, src.config)
+        var A: Int
+        var R: Int
+        var G: Int
+        var B: Int
+        var pixelColor: Int
+        val height = src.height
+        val width = src.width
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+
+                pixelColor = src.getPixel(x, y)
+                A = Color.alpha(pixelColor)
+                R = 255 - Color.red(pixelColor)
+                G = 255 - Color.green(pixelColor)
+                B = 255 - Color.blue(pixelColor)
+                bmOut.setPixel(x, y, Color.argb(A, R, G, B))
+            }
+        }
+
+        // return final bitmap
+        return bmOut
+    }
+
     interface Listener{
         abstract fun onDone()
         abstract fun onFailed()

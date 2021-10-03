@@ -219,11 +219,13 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"/>
 
-    <TextView
-        android:id="@+id/tv_note"
+    <EditText
+        android:id="@+id/et_note"
         android:layout_margin="4dp"
         android:background="@drawable/border"
         android:text="Note"
+        android:gravity="left"
+        android:textAlignment="gravity"
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="@color/purple_200"
@@ -236,13 +238,6 @@
         android:layout_height="0dp"/>
 
 
-    <Button
-        android:id="@+id/bt_save"
-        app:layout_constraintTop_toBottomOf="@+id/gl_h_4"
-        app:layout_constraintLeft_toRightOf="@id/gl_v_2"
-        app:layout_constraintRight_toLeftOf="@id/gl_v_4"
-        android:text="Save"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,79 +1,112 @@
 package com.tawk.to.mars.git.view.fragment
 
 import android.os.Bundle
-import android.util.Log
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
+import androidx.databinding.adapters.TextViewBindingAdapter
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.bumptech.glide.Glide
-import com.tawk.to.mars.git.R
 import com.tawk.to.mars.git.databinding.FragmentDetailBinding
 import com.tawk.to.mars.git.model.entity.User
-import com.tawk.to.mars.git.model.network.request.Request
 import com.tawk.to.mars.git.model.network.request.UserImageRequest
 import com.tawk.to.mars.git.model.network.request.UserRequest
-import com.tawk.to.mars.git.view.app.TawkTo
 import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 import java.lang.ref.WeakReference
-import javax.inject.Inject
 
 class DetailFragment: Fragment() {
-    private var _binding: FragmentDetailBinding? = null
-    lateinit var nvm:NetworkViewModel
-    lateinit var dvm:DatabaseViewModel
-
-    var user: User ? = null
+    private var binding: FragmentDetailBinding? = null
+    lateinit var networkViewModel:NetworkViewModel
+    lateinit var databaseViewModel:DatabaseViewModel
+    var user:User? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        _binding = FragmentDetailBinding.inflate(inflater, container, false)
-        nvm = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java)
-        dvm = ViewModelProvider(requireActivity()).get(DatabaseViewModel::class.java)
-        val view = _binding!!.root
+        binding = FragmentDetailBinding.inflate(inflater, container, false)
+        networkViewModel = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java)
+        databaseViewModel = ViewModelProvider(requireActivity()).get(DatabaseViewModel::class.java)
+        val view = binding!!.root
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-            nvm.userResult.observe(requireActivity(), Observer {
-                Log.i("DF","UPDATE FROM REMOTE:"+it.login)
-                updateUser(it)
-                dvm.saveUser(it!!)
-            })
+        networkViewModel.userResult.observe(requireActivity(), Observer {
+            it.note = this.user!!.note
+            updateUser(it)
+            databaseViewModel.saveUser(it!!)
+        })
+        databaseViewModel.userResult.observe(requireActivity(), Observer {
+            updateUser(it)
+            networkViewModel.request(UserRequest(it.login!!))
+        })
+
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
+        binding = null
     }
-    fun clear()
-    {
-        this.user = null
-    }
+
     fun updateUser(user:User)
     {
-
-        Log.i("DF","display:"+user)
-        if(_binding!=null)
+        this.user = user
+        if(binding!=null)
         {
-            Log.i("DF","Binded!")
-            _binding!!.tvName.text=user.name
-            _binding!!.tvUsername.text=user.login
-            _binding!!.tvCompany.text=user.company
-            _binding!!.tvRepos.text=""+user.publicRepos
-            _binding!!.tvGist.text=""+user.publicGists
-            _binding!!.tvFollowers.text=""+user.followers
-            _binding!!.tvFollowing.text=""+user.following
-            var request = UserImageRequest(user.id,
-                requireContext(),
-                user.avatarUrl!!,
-                WeakReference(_binding!!.ivAvatar)
+            binding!!.tvName.text=this.user!!.name
+            binding!!.tvUsername.text=this.user!!.login
+            binding!!.tvCompany.text=this.user!!.company
+            binding!!.tvRepos.text=""+this.user!!.publicRepos
+            binding!!.tvGist.text=""+this.user!!.publicGists
+            binding!!.tvFollowers.text=""+this.user!!.followers
+            binding!!.tvFollowing.text=""+this.user!!.following
+            binding!!.etNote.setText(when(this.user!!.note!=null){
+                true->user!!.note!!
+                false->""
+            })
+            var request = UserImageRequest(this.user!!.id,
+                    requireContext(),
+                this.user!!.avatarUrl!!,
+                    WeakReference(binding!!.ivAvatar),
+                -1
             )
-            nvm.request(request)
-        }
-    }
+            networkViewModel.request(request)
+            binding!!.etNote.addTextChangedListener (object : TextWatcher {
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
 
+                }
+
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+                }
+
+                override fun afterTextChanged(s: Editable?) {
+
+                        user!!.note = when(s!=null){
+                            true -> s.toString()
+                            false -> ""
+                        }
+
+
+
+                }
+
+            })
+
+        }
+
+    }
+    fun save()
+    {
+        if(databaseViewModel!=null&&this.user!=null&&this.user!!.note!=null)
+        {
+            this.databaseViewModel.saveNote(this.user!!.id,this.user!!.note!!)
+        }
+
+    }
 }

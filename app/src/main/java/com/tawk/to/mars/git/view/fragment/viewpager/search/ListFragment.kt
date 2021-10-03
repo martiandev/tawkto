@@ -1,10 +1,13 @@
 package com.tawk.to.mars.git.view.fragment.viewpager.search
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AbsListView
 import androidx.core.widget.NestedScrollView
+import androidx.databinding.adapters.AbsListViewBindingAdapter
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -39,6 +42,7 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.i("ListFragment","onCreate")
         binding!!.rvSearch.layoutManager = LinearLayoutManager(requireActivity())
         binding!!.rvSearch.layoutManager = LinearLayoutManager(requireActivity())
         binding!!.scroll.setOnScrollChangeListener(this)
@@ -49,13 +53,14 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
             {
                 setResults(it)
             }
-
+            Log.i("ListFragment","dvmRecdivef")
+            nvm.request(SinceRequest(adapter.getLastID()))
         })
         nvm.results.observe(requireActivity(), Observer {
-            binding.loading.visibility = View.VISIBLE
             dvm.save(it)
-
+            setResults(it)
         })
+        Log.i("ListFragment","onViewCreatedNextPage")
         getNextPage()
 
     }
@@ -65,8 +70,9 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
             if(users.size>0)
             {
                 adapter.update(users)
-                binding!!.loading.visibility = View.GONE
+
             }
+            binding!!.loading.visibility = View.GONE
         }
     }
 
@@ -76,11 +82,13 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
 
         binding.loading.visibility = View.VISIBLE
         dvm.get(adapter.getLastID())
-        nvm.request(SinceRequest(adapter.getLastID()))
+
     }
 
     override fun onScrollChange(v: NestedScrollView?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int) {
         if (scrollY == v!!.getChildAt(0).getMeasuredHeight() - v!!.getMeasuredHeight()) {
+            Log.i("ListFragment","onScroll")
+
             getNextPage()
 
         }
