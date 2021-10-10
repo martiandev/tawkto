@@ -3,7 +3,7 @@ package com.tawk.to.mars.git.model.network
 import com.tawk.to.mars.git.model.network.request.Request
 import com.tawk.to.mars.git.util.SingletonHolder
 import com.tawk.to.mars.git.view.app.TawkTo
-
+//Puts all request into a queue so that request will only be done 1 at a time
 class QueueManager
 {
     companion object : SingletonHolder<QueueManager, TawkTo>({

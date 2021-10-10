@@ -1,8 +1,5 @@
 package com.tawk.to.mars.git.viewmodel
 
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
@@ -23,22 +20,29 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.net.UnknownHostException
 
-
+//Used to request from git hub api
 class NetworkViewModel : ViewModel(),UserImageRequest.Listener {
+    //========================================= Variable ===========================================
+    //----------------------------------- Dependency Injection -------------------------------------
+    lateinit var tawkTo: TawkTo
     @Inject
     lateinit var gitHubService: GitHubService
-
     @Inject
     lateinit var gson: Gson
-
     @Inject
     lateinit var preference: Preference
-
+    //----------------------------------------------------------------------------------------------
+    //------------------------------------------- LiveData -----------------------------------------
     var connection = MutableLiveData<Boolean>()
     var results = MutableLiveData<List<User>>()
     var userResult = MutableLiveData<User>()
+    //----------------------------------------------------------------------------------------------
+    //-------------------------------------------- Status ------------------------------------------
+    //Blocks execution until the current request is done
     var isRequesting: Boolean = false
-    lateinit var tawkTo: TawkTo
+    //----------------------------------------------------------------------------------------------
+    //-------------------------------------------- CallBack ----------------------------------------
+    //Receives response on items requested
     var onItemsLoadedCallBack: Callback<ResponseBody> = object : Callback<ResponseBody> {
         override fun onResponse(
             call: Call<ResponseBody>,
@@ -72,23 +76,32 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener {
         }
 
     }
-
-    fun setConnection(b: Boolean)
-    {
-        connection.postValue(b)
-    }
+    //----------------------------------------------------------------------------------------------
+    //==============================================================================================
+    //=========================================== Method ===========================================
+    //------------------------------------------- Set-up -------------------------------------------
+    //setup for dependency injection
     fun init(tawkTo:TawkTo)
     {
         this.tawkTo = tawkTo
         this.tawkTo .appComponent.inject(this)
     }
-
+    //----------------------------------------------------------------------------------------------
+    //------------------------------------------- Status -------------------------------------------
+    //Update network status
+    fun setConnection(b: Boolean)
+    {
+        connection.postValue(b)
+    }
+    //----------------------------------------------------------------------------------------------
+    //-------------------------------------------- Queue -------------------------------------------
+    //Adds a request to the queue
     fun request(r: Request)
     {
         QueueManager.getInstance(tawkTo).addToQueue(r)
         next()
     }
-
+    //Performs next request on the queue
     private fun next()
     {
         if(!isRequesting)
@@ -135,22 +148,25 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener {
 
         }
     }
+    //----------------------------------------------------------------------------------------------
+    //--------------------------------------------- API --------------------------------------------
+    //Request users above the id with limit
     private fun requestUsersFrom(id:Int,limit:Int)
     {
         gitHubService
             .requestUsersLimit(id,limit,Constants.TOKEN)
             .enqueue(onItemsLoadedCallBack)
     }
-
+    //Request users above the id with 30 page size
     private fun requestUsersFrom(id:Int)
     {
         gitHubService
             .requestUsers(id,Constants.TOKEN)
                 .enqueue(onItemsLoadedCallBack)
     }
+    //Request user matching same login
     private fun search(login:String)
     {
-        Log.i("DF","USER:"+login)
 
         gitHubService
             .requestUser(login,Constants.TOKEN)
@@ -186,16 +202,20 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener {
 
             })
     }
-
+    //----------------------------------------------------------------------------------------------
+    //==============================================================================================
+    //==================================== UserImageRequestListener ================================
+    //Triggered when UserImageRequest is successful
     override fun onDone() {
         isRequesting = false
         next()
     }
-
+    //Triggered when UserImageRequest failed
     override fun onFailed() {
         isRequesting = false
         next()
     }
+    //==============================================================================================
 
 
 }

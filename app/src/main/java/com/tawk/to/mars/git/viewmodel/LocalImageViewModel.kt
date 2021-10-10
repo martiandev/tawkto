@@ -3,26 +3,26 @@ package com.tawk.to.mars.git.viewmodel
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.ImageView
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.bumptech.glide.Glide
 import com.tawk.to.mars.git.R
 import com.tawk.to.mars.git.model.network.request.UserImageRequest
+import com.tawk.to.mars.git.util.BitmapUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import java.io.*
+import java.net.URL
 
+//Viewmodel for accessing avatar from the local disk
 class LocalImageViewModel() : ViewModel() {
-
-    var request = MutableLiveData<UserImageRequest>()
-
+    //======================================== Method ==============================================
+    //Checks if the avatar is saved in the filesystem posts a UserImageRequest if no matching avatar is found
     fun load(id: Int, context: Context, url: String, imageView: ImageView, position: Int) {
            CoroutineScope(Dispatchers.IO).async {
                 if (url != null) {
@@ -39,16 +39,49 @@ class LocalImageViewModel() : ViewModel() {
                     if (result!!.exists()) {
                         display(context, url, imageView, position,result)
                     } else {
-                        request.postValue(UserImageRequest(id, context, url, imageView, position))
+                        download(result,url)
+                        display(context, url, imageView, position,result)
                     }
                 }
             }
 
     }
+    //Downloads if no matching avatar is found
+    suspend fun download(result:File,url:String)
+    {
+        try
+        {
+            val u = URL(url)
+            val conn = u.openConnection()
+            val contentLength = conn.contentLength
+            val stream = DataInputStream(u.openStream())
+            val buffer = ByteArray(contentLength)
 
+            stream.readFully(buffer)
+            stream.close()
+
+            val fos = DataOutputStream(FileOutputStream(result))
+            fos.write(buffer)
+            fos.flush()
+            fos.close()
+
+
+        } catch (e: FileNotFoundException) {
+            return
+
+        } catch (e: IOException) {
+            return
+
+        }
+
+
+    }
+
+    //Displays the avatar from filesystem
     suspend fun display(context: Context, url: String, imageView: ImageView, position: Int,result:File) {
         try {
             if (imageView != null) {
+                //Checks if the avatar should be inverted
                 if ((position + 1) % 4 == 0 && position > 0) {
                     val opts = BitmapFactory.Options()
                     opts.inJustDecodeBounds = false
@@ -57,7 +90,8 @@ class LocalImageViewModel() : ViewModel() {
                         null,
                         opts
                     )!!
-                    bmp = doInvert(bmp)!!
+                    //Inverts Bitmap colors
+                    bmp = BitmapUtil.doInvert(bmp)!!
                     Handler(Looper.getMainLooper()).post {
                         Glide.with(context)
                             .load(bmp)
@@ -79,35 +113,7 @@ class LocalImageViewModel() : ViewModel() {
             e.printStackTrace()
 
         }
-
     }
+    //==============================================================================================
 
-
-    suspend fun doInvert(src: Bitmap): Bitmap? {
-        val bmOut = Bitmap.createBitmap(src.width, src.height, src.config)
-        var A: Int
-        var R: Int
-        var G: Int
-        var B: Int
-        var pixelColor: Int
-        val height = src.height
-        val width = src.width
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-
-                pixelColor = src.getPixel(x, y)
-                A = Color.alpha(pixelColor)
-                R = 255 - Color.red(pixelColor)
-                G = 255 - Color.green(pixelColor)
-                B = 255 - Color.blue(pixelColor)
-                bmOut.setPixel(x, y, Color.argb(A, R, G, B))
-            }
-        }
-        return bmOut
-    }
-
-    interface Listener {
-        abstract fun onDone()
-        abstract fun onFailed()
-    }
 }

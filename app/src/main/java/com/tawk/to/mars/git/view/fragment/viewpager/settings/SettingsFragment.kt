@@ -1,4 +1,4 @@
-package com.tawk.to.mars.git.view.fragment.viewpager
+package com.tawk.to.mars.git.view.fragment.viewpager.settings
 
 import android.os.Bundle
 import android.view.LayoutInflater

@@ -1,7 +1,7 @@
 package com.tawk.to.mars.git.model.entity
 
 import java.util.*
-
+//Updates user profile
 class UserUpdateProfile {
     var id:Int ?= null
     var login:String ?= null

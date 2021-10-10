@@ -1,7 +1,7 @@
 package com.tawk.to.mars.git.model.entity
 
-import java.util.*
 
+//Update basic user info
 class UserUpdate {
     var id:Int ?= null
     var login:String ?= null

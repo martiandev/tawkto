@@ -2,7 +2,7 @@ package com.tawk.to.mars.git.model.entity.converter
 
 import androidx.room.TypeConverter
 import java.util.*
-
+//Used for converting date for persistence
 class DateConverter
 {
 

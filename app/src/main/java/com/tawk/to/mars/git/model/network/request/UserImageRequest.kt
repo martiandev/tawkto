@@ -10,11 +10,12 @@ import android.util.Log
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.tawk.to.mars.git.R
+import com.tawk.to.mars.git.util.BitmapUtil
 import kotlinx.coroutines.*
 import java.io.*
-import java.lang.ref.WeakReference
 import java.net.URL
 
+//Updates the avatar
 class UserImageRequest(val id:Int, val context:Context, val url:String, val imageView:ImageView,val position:Int): Request()
 {
     var dir:File ? = null
@@ -49,13 +50,6 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
                 }
             }
             result = File(context!!.filesDir, "/cache/"+id+".png")
-            if(result!!.exists())
-            {
-                display()
-            }
-            else
-            {
-
                 try
                 {
                     val u = URL(url)
@@ -84,7 +78,7 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
 
                 }
             }
-        }
+
     }
 
    suspend fun display()
@@ -99,8 +93,8 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
                     {
                         val opts = BitmapFactory.Options()
                         opts.inJustDecodeBounds = false
-                        var bmp:Bitmap = BitmapFactory.decodeStream(FileInputStream(result!!.absolutePath), null, opts)!!
-                        bmp = doInvert(bmp)!!
+                        var bmp:Bitmap? = BitmapFactory.decodeStream(FileInputStream(result!!.absolutePath), null, opts)!!
+                        bmp = BitmapUtil!!doInvert(bmp)!!
                         Handler(Looper.getMainLooper()).post {
                             Glide.with(context)
                                 .load(bmp)
@@ -134,31 +128,6 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
 
     }
 
-
-    suspend fun doInvert(src: Bitmap): Bitmap? {
-        val bmOut = Bitmap.createBitmap(src.width, src.height, src.config)
-        var A: Int
-        var R: Int
-        var G: Int
-        var B: Int
-        var pixelColor: Int
-        val height = src.height
-        val width = src.width
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-
-                pixelColor = src.getPixel(x, y)
-                A = Color.alpha(pixelColor)
-                R = 255 - Color.red(pixelColor)
-                G = 255 - Color.green(pixelColor)
-                B = 255 - Color.blue(pixelColor)
-                bmOut.setPixel(x, y, Color.argb(A, R, G, B))
-            }
-        }
-
-        // return final bitmap
-        return bmOut
-    }
 
     interface Listener{
         abstract fun onDone()

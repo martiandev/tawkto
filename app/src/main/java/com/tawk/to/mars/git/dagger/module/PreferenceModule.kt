@@ -10,6 +10,7 @@ import javax.inject.Inject
 @Module
 class PreferenceModule @Inject constructor(var app: TawkTo)
 {
+    //Provides
     @Provides
     fun providesPreference(): Preference {
            return Preference.getInstance(app)

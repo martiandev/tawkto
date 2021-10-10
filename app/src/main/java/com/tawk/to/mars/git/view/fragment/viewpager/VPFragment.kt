@@ -1,8 +1,6 @@
 package com.tawk.to.mars.git.view.fragment.viewpager
 
 import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,8 +8,8 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.tawk.to.mars.git.databinding.FragmentViewpagerBinding
-import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.view.fragment.viewpager.search.ListFragment
+import com.tawk.to.mars.git.view.fragment.viewpager.settings.SettingsFragment
 
 class VPFragment() :Fragment(){
     private var _binding: FragmentViewpagerBinding? = null
@@ -19,7 +17,7 @@ class VPFragment() :Fragment(){
     lateinit var adapter: HomePagerAdapter
 
      var search: ListFragment ? = null
-     var settings:SettingsFragment ? = null
+     var settings: SettingsFragment? = null
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

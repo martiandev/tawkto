@@ -39,6 +39,7 @@ class DetailFragment(val user:User): Fragment() {
     lateinit var networkViewModel:NetworkViewModel
     lateinit var databaseViewModel:DatabaseViewModel
     lateinit var loadLocalImageViewModel: LocalImageViewModel
+    var isDirty = false
 
     var originalNote:String? = ""
 
@@ -59,11 +60,13 @@ class DetailFragment(val user:User): Fragment() {
         this.binding!!.localImageVM = this.loadLocalImageViewModel
         this.binding!!.fragment = this
         this.networkViewModel.userResult.observe(requireActivity(), Observer {
+
             if( this.binding!=null)
             {
                 var update = false
                 if(this.user.updated_at!=null)
                 {
+
                     if(this.user.updated_at!!.before(it.updated_at))
                     {
                         update = true
@@ -77,9 +80,10 @@ class DetailFragment(val user:User): Fragment() {
                 {
                     if(it.id == user.id)
                     {
+                        isDirty = true
                         this.binding!!.user = it
                         this.databaseViewModel.saveProfile(it!!)
-                        this.networkViewModel.request(UserImageRequest(id,requireActivity(),it.avatarUrl!!,binding!!.ivAvatar,-1))
+                        this.networkViewModel.request(UserImageRequest(it.id,requireActivity(),it.avatarUrl!!,binding!!.ivAvatar,-1))
                     }
 
                 }
@@ -107,6 +111,10 @@ class DetailFragment(val user:User): Fragment() {
             {
                 save = true
             }
+        }
+        if(isDirty)
+        {
+            save = true
         }
         if(save)
         {

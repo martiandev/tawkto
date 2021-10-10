@@ -13,10 +13,11 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Inject
-
+//Module for dependency injection of Network requires reference to Application context and base url of the server
 @Module
 class NetworkModule @Inject constructor(var app: TawkTo,var baseUrl:String)
 {
+    //Provides Gson used for parsing JSON t POJOs
     @Provides
     fun provideGson(): Gson {
         val gsonBuilder = GsonBuilder()
@@ -24,6 +25,7 @@ class NetworkModule @Inject constructor(var app: TawkTo,var baseUrl:String)
         return gsonBuilder.create()
     }
 
+    //Provides retrofit to access git hub API
     @Provides
     fun provideRetrofit(gson: Gson?): Retrofit {
 
@@ -38,9 +40,9 @@ class NetworkModule @Inject constructor(var app: TawkTo,var baseUrl:String)
             .client(httpClient!!.build())
             .build()
     }
-
+    //Provides Instance of GitHubService to access git APIs
     @Provides
-    fun provideYelpService(retrofit: Retrofit): GitHubService
+    fun provideGitService(retrofit: Retrofit): GitHubService
     {
         return  retrofit.create(GitHubService::class.java)
     }

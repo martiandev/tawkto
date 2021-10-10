@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import java.util.*
-
+//Entity for github users
 @Entity
 data class User(@PrimaryKey var id:Int) {
 
