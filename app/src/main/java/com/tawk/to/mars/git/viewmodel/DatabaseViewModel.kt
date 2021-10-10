@@ -15,6 +15,7 @@ import com.tawk.to.mars.git.view.app.TawkTo
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 import kotlin.math.sin
 
@@ -41,20 +42,20 @@ class DatabaseViewModel : ViewModel() {
         CoroutineScope(Dispatchers.IO).async {
             var user = db.userDao().get(id)
             Log.i("DF", "VM ID:" + id)
-
             withContext(Dispatchers.Main)
             {
                 if (user != null) {
-                    Log.i("DF", "VM USER:" + user.id)
-                    Log.i("DF", "VM USER:" + user.login)
-
                     userResult.postValue(user)
                 }
 
             }
         }
-    }
 
+    }
+    fun resetUser()
+    {
+        userResult =  MutableLiveData<User>()
+    }
     fun saveNote(id: Int, note: String)
     {
         CoroutineScope(Dispatchers.IO).launch {
@@ -64,6 +65,12 @@ class DatabaseViewModel : ViewModel() {
             {
                 savedNote.postValue(u!!)
             }
+        }
+    }
+    fun saveProfile(user:User)
+    {
+        CoroutineScope(Dispatchers.IO).launch {
+            db.userDao().updateProfile(UserUpdateProfile(user))
         }
     }
     fun saveUser (data:User)

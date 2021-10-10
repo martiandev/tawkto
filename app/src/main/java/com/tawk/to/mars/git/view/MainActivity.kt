@@ -33,7 +33,9 @@ import android.content.IntentFilter
 import android.net.NetworkInfo
 
 import android.net.ConnectivityManager
+import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.model.network.request.SinceRequest
+import kotlinx.coroutines.InternalCoroutinesApi
 
 
 class MainActivity() : AppCompatActivity(){
@@ -82,6 +84,7 @@ class MainActivity() : AppCompatActivity(){
     //----------------------------------------------------------------------------------------------
     //==============================================================================================
     //======================================== LifeCycle ===========================================
+    @InternalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         (application as TawkTo).appComponent.inject(this)
@@ -188,33 +191,13 @@ class MainActivity() : AppCompatActivity(){
         this.networkViewModel = ViewModelProvider(this).get(NetworkViewModel::class.java)
         this.networkViewModel.init(application as TawkTo)
         this.databaseViewModel.init(application as TawkTo)
-
-        this.selectionViewModel.selected!!.observe(this, Observer {
-            supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            if(this.searchView!=null)
-            {
-                this.searchView!!.visibility =View.GONE
-            }
-            this.binding.bottomNav!!.visibility = View.GONE
-            this.binding.vDivider!!.visibility = View.GONE
-            if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
-            {
-                supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
-            }
-            supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,"selection").commit()
-            binding.toolbar.title = it.login
-//            databaseViewModel.get(it.id)
-            databaseViewModel.getUser(it.id)
-
-
-        })
-
+        this.selectionViewModel.selected!!.observe(this, Observer { setDetailFragment(it) })
     }
+
     fun setUpFragments()
     {
         splash = SplashFragment()
         vp = VPFragment()
-        df = DetailFragment()
     }
     fun setBottomNavigation()
     {
@@ -242,9 +225,27 @@ class MainActivity() : AppCompatActivity(){
         binding.toolbar.title=getString(R.string.app_name)
 
     }
+    fun setDetailFragment(user: User)
+    {
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        if(this.searchView!=null)
+        {
+            this.searchView!!.visibility =View.GONE
+        }
+        if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
+        {
+            supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
+        }
+        df = DetailFragment(user)
+        supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,"selection").commit()
+        binding.toolbar.title = user.login
+        databaseViewModel.getUser(user.id)
+        this.binding.bottomNav!!.visibility = View.GONE
+        this.binding.vDivider!!.visibility = View.GONE
+    }
+
     fun setVP()
     {
-
         if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
         {
             supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()

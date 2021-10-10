@@ -74,7 +74,7 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
         }
 
         holder.tv_login.text = user.login
-        var imageLoader = UserImageRequest(user.id!!,holder.iv_avatar.context,user.avatarUrl!!, WeakReference(holder.iv_avatar),position)
+        var imageLoader = UserImageRequest(user.id!!,holder.iv_avatar.context,user.avatarUrl!!, holder.iv_avatar,position)
         networkViewModel.request(imageLoader)
         holder.iv_edit.visibility  = when(user.note==null)
         {
@@ -106,12 +106,7 @@ class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
                 }
                 index++
             }
-            if(isDuplicate)
-            {
-                items.set(index,u)
-                notifyItemChanged(index)
-            }
-            else
+            if(!isDuplicate)
             {
                 items.add(u)
                 notifyItemInserted(items.size)

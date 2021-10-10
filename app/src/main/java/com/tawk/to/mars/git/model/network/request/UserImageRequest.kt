@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.tawk.to.mars.git.R
@@ -14,7 +15,7 @@ import java.io.*
 import java.lang.ref.WeakReference
 import java.net.URL
 
-class UserImageRequest(val id:Int, val context:Context, val url:String, val imageView:WeakReference<ImageView>,val position:Int): Request()
+class UserImageRequest(val id:Int, val context:Context, val url:String, val imageView:ImageView,val position:Int): Request()
 {
     var dir:File ? = null
     var result:File ? = null
@@ -47,7 +48,6 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
                     this.dir!!.mkdir()
                 }
             }
-            var urlSplit = url!!.split("/")
             result = File(context!!.filesDir, "/cache/"+id+".png")
             if(result!!.exists())
             {
@@ -93,7 +93,7 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
 
 
 
-                if(imageView.get()!=null)
+                if(imageView!=null)
                 {
                     if((position+1)%4==0&&position>0)
                     {
@@ -105,16 +105,17 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
                             Glide.with(context)
                                 .load(bmp)
                                 .placeholder(R.drawable.no)
-                                .into(imageView.get()!!)
+                                .into(imageView!!)
                         }
                     }
                     else
                     {
+
                         Handler(Looper.getMainLooper()).post {
                             Glide.with(context)
                                 .load(result!!.absolutePath)
                                 .placeholder(R.drawable.no)
-                                .into(imageView.get()!!)
+                                .into(imageView!!)
                         }
                     }
 

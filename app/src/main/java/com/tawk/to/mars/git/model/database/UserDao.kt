@@ -7,6 +7,8 @@ import com.tawk.to.mars.git.model.entity.UserUpdateNote
 import com.tawk.to.mars.git.model.entity.UserUpdateProfile
 import io.reactivex.Completable
 import io.reactivex.Single
+import kotlinx.coroutines.flow.Flow
+
 @Dao
 abstract class UserDao {
 
@@ -25,7 +27,7 @@ abstract class UserDao {
     abstract fun getSince(since:Int, limit:Int):List<User>
 
     @Query("SELECT * FROM User where id = :id")
-    abstract fun get(id:Int):User
+    abstract fun get(id:Int): User
 
     @Delete
     abstract fun delete(data:User)

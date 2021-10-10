@@ -1,14 +1,14 @@
 package com.tawk.to.mars.git.view.fragment
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.widget.addTextChangedListener
-import androidx.databinding.adapters.TextViewBindingAdapter
+import android.widget.ImageView
+
+import androidx.annotation.NonNull
+import androidx.databinding.BindingAdapter
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -17,109 +17,104 @@ import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.model.network.request.UserImageRequest
 import com.tawk.to.mars.git.model.network.request.UserRequest
 import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
+import com.tawk.to.mars.git.viewmodel.LocalImageViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
-import java.lang.ref.WeakReference
 
-class DetailFragment: Fragment() {
+class DetailFragment(val user:User): Fragment() {
+
+    companion object
+    {
+        @JvmStatic
+        @BindingAdapter("imageUrl","id","lIVM")
+        fun loadImage(@NonNull ivIcon: ImageView, imageUrl:String,id:Int, lIVM:LocalImageViewModel) {
+            if (imageUrl.length > 1)
+            {
+                lIVM.load(id,ivIcon.context,imageUrl,ivIcon,-1)
+            }
+
+        }
+    }
+
     private var binding: FragmentDetailBinding? = null
     lateinit var networkViewModel:NetworkViewModel
     lateinit var databaseViewModel:DatabaseViewModel
-    var user:User? = null
+    lateinit var loadLocalImageViewModel: LocalImageViewModel
+
+    var originalNote:String? = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = FragmentDetailBinding.inflate(inflater, container, false)
-        networkViewModel = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java)
-        databaseViewModel = ViewModelProvider(requireActivity()).get(DatabaseViewModel::class.java)
+        this.binding = FragmentDetailBinding.inflate(inflater, container, false)
+        this.networkViewModel = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java)
+        this.databaseViewModel = ViewModelProvider(requireActivity()).get(DatabaseViewModel::class.java)
+        this.loadLocalImageViewModel = ViewModelProvider(requireActivity()).get(LocalImageViewModel::class.java)
         val view = binding!!.root
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        networkViewModel.userResult.observe(requireActivity(), Observer {
-            it.note = this.user!!.note
-            updateUser(it)
-            databaseViewModel.saveUser(it!!)
+        this.binding!!.user = this.user
+        this.originalNote = this.user.note
+        this.binding!!.etNote.setText(this.originalNote)
+        this.binding!!.localImageVM = this.loadLocalImageViewModel
+        this.binding!!.fragment = this
+        this.networkViewModel.userResult.observe(requireActivity(), Observer {
+            if( this.binding!=null)
+            {
+                var update = false
+                if(this.user.updated_at!=null)
+                {
+                    if(this.user.updated_at!!.before(it.updated_at))
+                    {
+                        update = true
+                    }
+                }
+                else
+                {
+                    update  = true
+                }
+                if(update)
+                {
+                    if(it.id == user.id)
+                    {
+                        this.binding!!.user = it
+                        this.databaseViewModel.saveProfile(it!!)
+                        this.networkViewModel.request(UserImageRequest(id,requireActivity(),it.avatarUrl!!,binding!!.ivAvatar,-1))
+                    }
+
+                }
+
+            }
         })
-        databaseViewModel.userResult.observe(requireActivity(), Observer {
-            updateUser(it)
-            networkViewModel.request(UserRequest(it.login!!))
-        })
+
+        this.networkViewModel.request(UserRequest(this.user.login!!))
 
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding = null
+        this.binding = null
+        this.networkViewModel.userResult.removeObservers(requireActivity())
     }
 
-    fun updateUser(user:User)
-    {
-        this.user = user
-        if(binding!=null)
-        {
-            binding!!.tvName.text=this.user!!.name
-            binding!!.tvUsername.text=this.user!!.login
-            binding!!.tvCompany.text=this.user!!.company
 
-            binding!!.tvRepos.text=when(this.user!!.publicRepos==null){
-                false->""+this.user!!.publicRepos
-                true->"--"
-            }
-            binding!!.tvGist.text=when(this.user!!.publicGists==null){
-                false->""+this.user!!.publicGists
-                true->"--"
-            }
-            binding!!.tvFollowers.text=when(this.user!!.followers==null){
-                false->""+this.user!!.followers
-                true->"--"
-            }
-            binding!!.tvFollowing.text=when(this.user!!.following==null){
-                false->""+this.user!!.following
-                true->"--"
-            }
-            binding!!.etNote.setText(when(this.user!!.note!=null){
-                true->user!!.note!!
-                false->""
-            })
-            var request = UserImageRequest(this.user!!.id,
-                    requireContext(),
-                this.user!!.avatarUrl!!,
-                    WeakReference(binding!!.ivAvatar),
-                -1
-            )
-            networkViewModel.request(request)
-            binding!!.etNote.addTextChangedListener (object : TextWatcher {
-                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-                }
-
-                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-                }
-
-                override fun afterTextChanged(s: Editable?) {
-
-                        user!!.note = when(s!=null){
-                            true -> s.toString()
-                            false -> ""
-                        }
-
-
-
-                }
-
-            })
-
-        }
-
-    }
     fun save()
     {
-        if(databaseViewModel!=null&&this.user!=null&&this.user!!.note!=null)
+        var save = false
+        if(this.originalNote!=null)
         {
-            this.databaseViewModel.saveNote(this.user!!.id,this.user!!.note!!)
+            if(!this.originalNote!!.equals(this.binding!!.etNote.text))
+            {
+                save = true
+            }
         }
+        if(save)
+        {
+            this.databaseViewModel.saveNote(this.user!!.id,this.binding!!.etNote!!.text!!.toString())
 
+
+        }
+        this.binding!!.etNote.setText("")
+        this.databaseViewModel.resetUser()
     }
 }
