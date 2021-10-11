@@ -12,6 +12,6 @@ class Constants {
         //response code for requesting access to disk
         val REQUEST_PERMISSION:Int = 305
         //token for github api
-        val TOKEN:String = "token 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"
+        val TOKEN:String = "token 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"
     }
 }
