@@ -22,10 +22,12 @@ import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
 
     val TAG_ADAPTER = "adapter"
+    val TAG_LIST = "list"
     lateinit var binding: FragmentSearchBinding
     lateinit var nvm: NetworkViewModel
     lateinit var dvm: DatabaseViewModel
     lateinit var adapter:ResultAdapter
+     var users:ArrayList<User> = ArrayList<User>()
     var isSearch = false
 
     override fun onCreateView(
@@ -37,6 +39,7 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
         {
             this.adapter = savedInstanceState.getSerializable(TAG_ADAPTER) as ResultAdapter
             Log.i("VP","list:"+adapter.items)
+            this.users = savedInstanceState.getSerializable(TAG_LIST) as ArrayList<User>
         }
         nvm = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java)
         nvm.init(requireActivity().application as TawkTo)
@@ -49,6 +52,7 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putSerializable(TAG_ADAPTER,adapter)
+        outState.putSerializable(TAG_LIST,adapter.items)
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -68,6 +72,7 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
             {
                 setResults(it)
             }
+            Log.i("VP","REQUESTING:"+adapter.getLastID())
             nvm.request(SinceRequest(adapter.getLastID()))
         })
         nvm.results.observe(requireActivity(), Observer {
@@ -97,6 +102,11 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
         {
             Log.i("VP","USE LOADED")
             binding.rvSearch.adapter = adapter
+            adapter.update(users)
+            if(users.size<1)
+            {
+                getNextPage()
+            }
         }
         else
         {

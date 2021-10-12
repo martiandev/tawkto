@@ -44,6 +44,7 @@ class MainActivity() : AppCompatActivity(){
 
     //========================================= Variable ===========================================
     //---------------------------------------- BroadcastReceiver -----------------------------------
+    var pendingUpdate = false
     var receiver: BroadcastReceiver? = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val cm = context!!.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -59,7 +60,18 @@ class MainActivity() : AppCompatActivity(){
                     networkViewModel.setConnection(netInfo.isConnected)
                     if(netInfo.isConnected)
                     {
-                        networkViewModel.request(SinceRequest(0))
+                        if(pendingUpdate)
+                        {
+                            Log.i("VP","Connected will request")
+                            networkViewModel.request(SinceRequest(0))
+                                pendingUpdate = false
+                        }
+
+
+                    }
+                    else
+                    {
+                        pendingUpdate = true
                     }
                 }
             }
@@ -92,6 +104,9 @@ class MainActivity() : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         (application as TawkTo).appComponent.inject(this)
+        val filter = IntentFilter()
+        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE")
+        registerReceiver(receiver, filter)
         binding = ActivityMainBinding.inflate(layoutInflater)
         binding.appBar.visibility= View.GONE
         binding.bottomNav.visibility = View.GONE
@@ -104,6 +119,7 @@ class MainActivity() : AppCompatActivity(){
         displayInitial()
       }
 
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(TAG_FILTER,filter)
@@ -112,13 +128,11 @@ class MainActivity() : AppCompatActivity(){
 
     override fun onResume() {
         super.onResume()
-        val filter = IntentFilter()
-        filter.addAction("android.net.conn.CONNECTIVITY_CHANGE")
-        registerReceiver(receiver, filter)
+
     }
     override fun onPause() {
         super.onPause()
-        unregisterReceiver(receiver)
+
     }
     override fun onBackPressed() {
 
@@ -145,7 +159,7 @@ class MainActivity() : AppCompatActivity(){
 
     override fun onDestroy() {
         super.onDestroy()
-
+        unregisterReceiver(receiver)
     }
     //==============================================================================================
     //========================================= View ===============================================
