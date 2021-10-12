@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.ImageView
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.bumptech.glide.Glide
@@ -25,11 +26,13 @@ class LocalImageViewModel() : ViewModel() {
     //Checks if the avatar is saved in the filesystem posts a UserImageRequest if no matching avatar is found
     fun load(id: Int, context: Context, url: String, imageView: ImageView, position: Int) {
            CoroutineScope(Dispatchers.IO).async {
+
                 if (url != null) {
                     var dir = File(context!!.filesDir, "/cache")
                     if (!dir!!.exists()) {
                         dir!!.mkdir()
-                    } else {
+                    }
+                    else {
                         if (!dir!!.isDirectory) {
                             dir!!.delete()
                             dir!!.mkdir()
@@ -93,18 +96,32 @@ class LocalImageViewModel() : ViewModel() {
                     //Inverts Bitmap colors
                     bmp = BitmapUtil.doInvert(bmp)!!
                     Handler(Looper.getMainLooper()).post {
-                        Glide.with(context)
-                            .load(bmp)
-                            .placeholder(R.drawable.no)
-                            .into(imageView!!)
+                        if (context != null && bmp != null && imageView != null)
+                        {
+                            if(!(context as FragmentActivity).isDestroyed)
+                            {
+                                Glide.with(context)
+                                    .load(bmp)
+                                    .placeholder(R.drawable.no)
+                                    .into(imageView!!)
+                            }
+
+                        }
+
                     }
                 } else {
 
                     Handler(Looper.getMainLooper()).post {
-                        Glide.with(context)
-                            .load(result!!.absolutePath)
-                            .placeholder(R.drawable.no)
-                            .into(imageView!!)
+                        if (context != null && result != null && imageView != null) {
+                            if(!(context as FragmentActivity).isDestroyed)
+                            {
+                                Glide.with(context)
+                                    .load(result!!.absolutePath)
+                                    .placeholder(R.drawable.no)
+                                    .into(imageView!!)
+                            }
+
+                        }
                     }
                 }
 

@@ -20,7 +20,7 @@ abstract class UserDao {
     abstract fun insert(data:User):Long
     //Updates user profile using UserUpdateProfile object
     @Update(entity = User::class)
-    abstract fun updateProfile(obj:UserUpdateProfile)
+    abstract fun update(obj:UserUpdateProfile)
     //Updates user basic data using UserUpdate object
     @Update(entity = User::class)
     abstract fun update(obj:UserUpdate)
@@ -37,7 +37,11 @@ abstract class UserDao {
     @Query(" SELECT * FROM User JOIN UserFTS ON User.login = UserFTS.login where UserFTS MATCH '%'||:query||'%'")
     abstract fun searchFTS(query: String): List<User>
     //Retrieve a users whose login or note contains the query string
+
     @Query(" SELECT * FROM User where login LIKE '%'||:query||'%' OR note LIKE '%'||:query||'%'")
     abstract fun search(query: String): List<User>
+
+    @Query("DELETE FROM User")
+    abstract fun nukeTable()
 
 }

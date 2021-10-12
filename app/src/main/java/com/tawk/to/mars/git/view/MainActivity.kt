@@ -33,9 +33,9 @@ import android.content.IntentFilter
 import android.net.NetworkInfo
 
 import android.net.ConnectivityManager
+import android.os.PersistableBundle
 import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.model.network.request.SinceRequest
-import kotlinx.coroutines.InternalCoroutinesApi
 
 
 class MainActivity() : AppCompatActivity(){
@@ -67,6 +67,10 @@ class MainActivity() : AppCompatActivity(){
     //----------------------------------------------------------------------------------------------
     //----------------------------------------- Variable -------------------------------------------
     var filter:String = ""
+    val TAG_FILTER = "FILTER"
+    val TAG_SPLASH = "Splash"
+    val TAG_VP = "VP"
+    val TAG_DF = "Details"
     //----------------------------------------------------------------------------------------------
     //------------------------------------------ Fragment ------------------------------------------
     lateinit var splash:SplashFragment
@@ -77,14 +81,12 @@ class MainActivity() : AppCompatActivity(){
     private lateinit var binding: ActivityMainBinding
     var searchView: SearchView? = null
     var menu: Menu? = null
-
     lateinit var  databaseViewModel: DatabaseViewModel
     lateinit var  networkViewModel: NetworkViewModel
     lateinit var  selectionViewModel: SelectionViewModel
     //----------------------------------------------------------------------------------------------
     //==============================================================================================
     //======================================== LifeCycle ===========================================
-    @InternalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         (application as TawkTo).appComponent.inject(this)
@@ -94,21 +96,17 @@ class MainActivity() : AppCompatActivity(){
         binding.vDivider.visibility = View.GONE
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
-
+        reloadInstance(savedInstanceState)
+        setUpFragments(savedInstanceState)
         setUpViewModel()
-        setUpFragments()
-
-        if (shouldRequestPermission())
-        {
-            supportFragmentManager.beginTransaction().add(R.id.fc_main,splash,"Splash").commit()
-        }
-        else
-        {
-            showNavigation()
-            setBottomNavigation()
-            setVP()
-        }
+        displayInitial()
       }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(TAG_FILTER,filter)
+
+    }
 
     override fun onResume() {
         super.onResume()
@@ -116,14 +114,11 @@ class MainActivity() : AppCompatActivity(){
         filter.addAction("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(receiver, filter)
     }
-
     override fun onPause() {
         super.onPause()
         unregisterReceiver(receiver)
     }
-
     override fun onBackPressed() {
-
         var fragment = supportFragmentManager.findFragmentById(R.id.fc_main)
         if(fragment!=null)
         {
@@ -141,8 +136,6 @@ class MainActivity() : AppCompatActivity(){
         {
             super.onBackPressed()
         }
-
-
     }
     //==============================================================================================
     //========================================= View ===============================================
@@ -163,14 +156,16 @@ class MainActivity() : AppCompatActivity(){
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         searchView = menu.findItem(R.id.action_search).getActionView() as SearchView
+        if(filter.length>1) { searchView!!.setQuery(filter,false) }
+
         searchView!!.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 filter = query
                 databaseViewModel.search(query)
                 return true
             }
-
             override fun onQueryTextChange(newText: String): Boolean {
+                filter = newText
                 return true
             }
         })
@@ -178,7 +173,6 @@ class MainActivity() : AppCompatActivity(){
             databaseViewModel.get(0)
             false
         }
-
 
         return true
     }
@@ -194,10 +188,70 @@ class MainActivity() : AppCompatActivity(){
         this.selectionViewModel.selected!!.observe(this, Observer { setDetailFragment(it) })
     }
 
-    fun setUpFragments()
+
+    fun displayInitial()
     {
-        splash = SplashFragment()
-        vp = VPFragment()
+        if (shouldRequestPermission())
+        {
+            supportFragmentManager.beginTransaction().add(R.id.fc_main,splash,TAG_SPLASH).commit()
+        }
+        else
+        {
+            showNavigation()
+            setBottomNavigation()
+            setVP()
+        }
+    }
+    fun reloadInstance(savedInstanceState:Bundle?)
+    {
+        if(savedInstanceState!=null)
+        {
+            this.filter = when(savedInstanceState!!.getString(TAG_FILTER)==null)
+            {
+                true->""
+                false->savedInstanceState!!.getString(TAG_FILTER)!!
+            }
+        }
+    }
+    fun setUpFragments(savedInstanceState:Bundle?)
+    {
+        if(savedInstanceState==null)
+        {
+            splash = SplashFragment()
+            vp = VPFragment()
+        }
+        else
+        {
+            if(getSupportFragmentManager()!!.findFragmentByTag(TAG_SPLASH)!=null)
+            {
+                splash = getSupportFragmentManager()!!.findFragmentByTag(TAG_SPLASH) as SplashFragment
+            }
+            else
+            {
+                splash = SplashFragment()
+            }
+            if(getSupportFragmentManager()!!.findFragmentByTag(TAG_VP)!=null)
+            {
+                vp = getSupportFragmentManager()!!.findFragmentByTag(TAG_VP) as VPFragment
+            }
+            else
+            {
+                vp = VPFragment()
+            }
+        }
+
+    }
+    fun showNavigation()
+    {
+        binding.appBar!!.visibility= View.VISIBLE
+        binding.bottomNav!!.visibility = View.VISIBLE
+        binding.vDivider!!.visibility = View.VISIBLE
+        if(searchView!=null)
+        {
+            searchView!!.visibility =View.VISIBLE
+        }
+        binding.toolbar.title=getString(R.string.app_name)
+
     }
     fun setBottomNavigation()
     {
@@ -212,19 +266,10 @@ class MainActivity() : AppCompatActivity(){
         menu!!.add(Menu.NONE,1, Menu.NONE,getString(R.string.settings))
             .setIcon(R.drawable.setting)
     }
+    //==============================================================================================
+    //====================================Display Fragment =========================================
 
-    fun showNavigation()
-    {
-        binding.appBar!!.visibility= View.VISIBLE
-        binding.bottomNav!!.visibility = View.VISIBLE
-        binding.vDivider!!.visibility = View.VISIBLE
-        if(searchView!=null)
-        {
-            searchView!!.visibility =View.VISIBLE
-        }
-        binding.toolbar.title=getString(R.string.app_name)
 
-    }
     fun setDetailFragment(user: User)
     {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
@@ -237,7 +282,7 @@ class MainActivity() : AppCompatActivity(){
             supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
         }
         df = DetailFragment(user)
-        supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,"selection").commit()
+        supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,TAG_DF).commit()
         binding.toolbar.title = user.login
         databaseViewModel.getUser(user.id)
         this.binding.bottomNav!!.visibility = View.GONE

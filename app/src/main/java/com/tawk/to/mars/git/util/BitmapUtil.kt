@@ -2,6 +2,7 @@ package com.tawk.to.mars.git.util
 
 import android.graphics.Bitmap
 import android.graphics.Color
+
 //Used for bitmap functions
 class BitmapUtil {
     companion object

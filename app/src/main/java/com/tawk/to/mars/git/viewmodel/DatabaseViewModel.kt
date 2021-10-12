@@ -1,10 +1,7 @@
 package com.tawk.to.mars.git.viewmodel
 
-import android.app.DownloadManager
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.tawk.to.mars.git.model.preference.Preference
 import com.tawk.to.mars.git.model.database.TTDatabase
 import com.tawk.to.mars.git.model.entity.User
@@ -12,12 +9,9 @@ import com.tawk.to.mars.git.model.entity.UserUpdate
 import com.tawk.to.mars.git.model.entity.UserUpdateNote
 import com.tawk.to.mars.git.model.entity.UserUpdateProfile
 import com.tawk.to.mars.git.view.app.TawkTo
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
-import kotlin.math.sin
+
 
 //ViewModel for interacting with the database
 class DatabaseViewModel : ViewModel() {
@@ -115,7 +109,7 @@ class DatabaseViewModel : ViewModel() {
     //Saves updates to the User's profile fetched from /user/{username} api
     fun saveProfile(user:User) {
         CoroutineScope(Dispatchers.IO).launch {
-            db.userDao().updateProfile(UserUpdateProfile(user))
+            db.userDao().update(UserUpdateProfile(user))
         }
     }
     //Save a list of users to the database

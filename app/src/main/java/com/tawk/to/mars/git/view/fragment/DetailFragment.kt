@@ -112,6 +112,7 @@ class DetailFragment(val user:User): Fragment() {
                 save = true
             }
         }
+
         if(isDirty)
         {
             save = true
