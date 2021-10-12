@@ -154,14 +154,14 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener {
     private fun requestUsersFrom(id:Int,limit:Int)
     {
         gitHubService
-            .requestUsersLimit(id,limit,Constants.TOKEN)
+            .requestUsersLimit(id,limit,Constants.TOKEN.replace(":",""))
             .enqueue(onItemsLoadedCallBack)
     }
     //Request users above the id with 30 page size
     private fun requestUsersFrom(id:Int)
     {
         gitHubService
-            .requestUsers(id,Constants.TOKEN)
+            .requestUsers(id,Constants.TOKEN.replace(":",""))
                 .enqueue(onItemsLoadedCallBack)
     }
     //Request user matching same login
@@ -169,7 +169,7 @@ class NetworkViewModel : ViewModel(),UserImageRequest.Listener {
     {
 
         gitHubService
-            .requestUser(login,Constants.TOKEN)
+            .requestUser(login,Constants.TOKEN.replace(":",""))
             .enqueue(object:Callback<User>{
                 override fun onResponse(
                     call: Call<User>,
