@@ -98,7 +98,7 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
                         Handler(Looper.getMainLooper()).post {
                             Glide.with(context)
                                 .load(bmp)
-                                .placeholder(R.drawable.no)
+                                .placeholder(R.drawable.coding)
                                 .into(imageView!!)
                         }
                     }
@@ -108,7 +108,7 @@ class UserImageRequest(val id:Int, val context:Context, val url:String, val imag
                         Handler(Looper.getMainLooper()).post {
                             Glide.with(context)
                                 .load(result!!.absolutePath)
-                                .placeholder(R.drawable.no)
+                                .placeholder(R.drawable.coding)
                                 .into(imageView!!)
                         }
                     }

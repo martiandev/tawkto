@@ -3,10 +3,11 @@ package com.tawk.to.mars.git.model.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 import java.util.*
 //Entity for github users
 @Entity
-data class User(@PrimaryKey var id:Int) {
+data class User(@PrimaryKey var id:Int):Serializable {
 
     @SerializedName("login")
     var login:String ?= null

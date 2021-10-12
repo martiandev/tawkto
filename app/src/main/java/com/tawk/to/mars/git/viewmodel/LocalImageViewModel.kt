@@ -102,7 +102,7 @@ class LocalImageViewModel() : ViewModel() {
                             {
                                 Glide.with(context)
                                     .load(bmp)
-                                    .placeholder(R.drawable.no)
+                                    .placeholder(R.drawable.coding)
                                     .into(imageView!!)
                             }
 
@@ -117,7 +117,7 @@ class LocalImageViewModel() : ViewModel() {
                             {
                                 Glide.with(context)
                                     .load(result!!.absolutePath)
-                                    .placeholder(R.drawable.no)
+                                    .placeholder(R.drawable.coding)
                                     .into(imageView!!)
                             }
 

@@ -58,7 +58,7 @@
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/gl_v_3"
             android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.65"
+            app:layout_constraintGuide_percent="0.25"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <androidx.constraintlayout.widget.Guideline
@@ -77,6 +77,7 @@
         <ImageView
             android:id="@+id/iv_avatar"
             app:layout_constraintLeft_toRightOf="@+id/gl_v_1"
+            app:layout_constraintRight_toLeftOf="@+id/gl_v_2"
             app:layout_constraintTop_toBottomOf="@+id/gl_h_1"
             app:imageUrl='@{user.avatarUrl!=null?user.avatarUrl:""}'
             app:id='@{user.id}'
@@ -88,10 +89,11 @@
         <TextView
             android:id="@+id/tv_name"
             android:text='@{user.name!=null ? user.name:"-------"}'
-            app:layout_constraintTop_toBottomOf="@+id/gl_h_1"
-            app:layout_constraintLeft_toRightOf="@+id/gl_v_2"
-            app:layout_constraintRight_toLeftOf="@+id/gl_v_4"
+            app:layout_constraintTop_toBottomOf="@+id/iv_avatar"
+            app:layout_constraintLeft_toRightOf="@+id/gl_v_1"
+            app:layout_constraintRight_toLeftOf="@+id/gl_v_2"
             android:textStyle="bold"
+            android:layout_margin="16dp"
             android:gravity="center"
             android:textColor="@color/black"
             android:textSize="16sp"
@@ -102,7 +104,7 @@
             android:id="@+id/tv_label_followers"
             android:layout_marginTop="12dp"
             app:layout_constraintTop_toBottomOf="@+id/tv_name"
-            app:layout_constraintLeft_toRightOf="@+id/gl_v_2"
+            app:layout_constraintLeft_toRightOf="@+id/gl_v_1"
             app:layout_constraintRight_toLeftOf="@+id/gl_v_3"
 
             app:layout_constraintVertical_bias="0.3"
@@ -117,7 +119,7 @@
         <TextView
             android:id="@+id/tv_followers"
             app:layout_constraintTop_toBottomOf="@+id/tv_label_followers"
-            app:layout_constraintLeft_toRightOf="@+id/gl_v_2"
+            app:layout_constraintLeft_toRightOf="@+id/gl_v_1"
             app:layout_constraintRight_toLeftOf="@+id/gl_v_3"
             android:textStyle="bold"
             android:text='@{user.followers!=null ? String.valueOf(user.followers) : "--" }'
@@ -131,7 +133,7 @@
             android:layout_marginTop="12dp"
             app:layout_constraintTop_toBottomOf="@+id/tv_name"
             app:layout_constraintLeft_toRightOf="@+id/gl_v_3"
-            app:layout_constraintRight_toLeftOf="@+id/gl_v_4"
+            app:layout_constraintRight_toLeftOf="@+id/gl_v_2"
             app:layout_constraintVertical_bias="0.3"
             android:textStyle="bold"
             android:text="Following"
@@ -144,7 +146,7 @@
             android:id="@+id/tv_following"
             app:layout_constraintTop_toBottomOf="@+id/tv_label_following"
             app:layout_constraintLeft_toRightOf="@+id/gl_v_3"
-            app:layout_constraintRight_toLeftOf="@+id/gl_v_4"
+            app:layout_constraintRight_toLeftOf="@+id/gl_v_2"
             android:text='@{user.following!=null ? String.valueOf(user.following) : "--" }'
 
             android:textStyle="bold"
@@ -157,8 +159,8 @@
             android:id="@+id/tv_label_repo"
             android:layout_marginTop="12dp"
             app:layout_constraintTop_toBottomOf="@+id/tv_followers"
-            app:layout_constraintLeft_toRightOf="@+id/gl_v_2"
-            app:layout_constraintRight_toLeftOf="@+id/gl_v_3"
+            app:layout_constraintLeft_toRightOf="@+id/gl_v_3"
+            app:layout_constraintRight_toLeftOf="@+id/gl_v_2"
             app:layout_constraintVertical_bias="0.3"
             android:textStyle="bold"
             android:text="Repos"
@@ -170,8 +172,8 @@
         <TextView
             android:id="@+id/tv_repos"
             app:layout_constraintTop_toBottomOf="@+id/tv_label_repo"
-            app:layout_constraintLeft_toRightOf="@+id/gl_v_2"
-            app:layout_constraintRight_toLeftOf="@+id/gl_v_3"
+            app:layout_constraintLeft_toRightOf="@+id/gl_v_3"
+            app:layout_constraintRight_toLeftOf="@+id/gl_v_2"
             android:textStyle="bold"
             android:gravity="center"
             android:text='@{user.publicRepos!=null ? String.valueOf(user.publicRepos)  : "--" }'
@@ -184,8 +186,8 @@
             android:id="@+id/tv_label_gist"
             android:layout_marginTop="12dp"
             app:layout_constraintTop_toBottomOf="@+id/tv_following"
-            app:layout_constraintLeft_toRightOf="@+id/gl_v_3"
-            app:layout_constraintRight_toLeftOf="@+id/gl_v_4"
+            app:layout_constraintLeft_toRightOf="@+id/gl_v_1"
+            app:layout_constraintRight_toLeftOf="@+id/gl_v_3"
             app:layout_constraintVertical_bias="0.3"
             android:textStyle="bold"
             android:text="Gist"
@@ -197,8 +199,8 @@
         <TextView
             android:id="@+id/tv_gist"
             app:layout_constraintTop_toBottomOf="@+id/tv_label_gist"
-            app:layout_constraintLeft_toRightOf="@+id/gl_v_3"
-            app:layout_constraintRight_toLeftOf="@+id/gl_v_4"
+            app:layout_constraintLeft_toRightOf="@+id/gl_v_1"
+            app:layout_constraintRight_toLeftOf="@+id/gl_v_3"
             android:textStyle="bold"
             android:text='@{user.publicGists!=null ? String.valueOf(user.publicGists) : "--" }'
             android:gravity="center"
@@ -240,10 +242,10 @@
             android:textStyle="bold"
             android:textColor="@color/purple_200"
             android:padding="4dp"
-            app:layout_constraintTop_toBottomOf="@+id/gl_h_3"
+            app:layout_constraintTop_toBottomOf="@+id/gl_h_1"
             app:layout_constraintBottom_toTopOf="@+id/gl_h_4"
-            app:layout_constraintRight_toLeftOf="@+id/gl_v_5"
-            app:layout_constraintLeft_toRightOf="@+id/gl_v_1"
+            app:layout_constraintLeft_toRightOf="@+id/gl_v_2"
+            app:layout_constraintRight_toLeftOf="@+id/gl_v_4"
             android:layout_width="0dp"
             android:layout_height="0dp"/>
 

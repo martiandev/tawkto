@@ -21,6 +21,7 @@ import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 
 class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
 
+    val TAG_ADAPTER = "adapter"
     lateinit var binding: FragmentSearchBinding
     lateinit var nvm: NetworkViewModel
     lateinit var dvm: DatabaseViewModel
@@ -32,6 +33,11 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        if(savedInstanceState!=null)
+        {
+            this.adapter = savedInstanceState.getSerializable(TAG_ADAPTER) as ResultAdapter
+            Log.i("VP","list:"+adapter.items)
+        }
         nvm = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java)
         nvm.init(requireActivity().application as TawkTo)
         dvm = ViewModelProvider(requireActivity()).get(DatabaseViewModel::class.java)
@@ -40,7 +46,10 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
         val view = binding!!.root
         return view
     }
-
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable(TAG_ADAPTER,adapter)
+    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding!!.rvSearch.layoutManager = LinearLayoutManager(requireActivity())
@@ -84,7 +93,18 @@ class ListFragment():Fragment(),NestedScrollView.OnScrollChangeListener {
             binding.loading.visibility = View.GONE
 
         })
-        getNextPage()
+        if(adapter!=null)
+        {
+            Log.i("VP","USE LOADED")
+            binding.rvSearch.adapter = adapter
+        }
+        else
+        {
+            Log.i("VP","REQUEST MORE ")
+
+            getNextPage()
+        }
+
 
     }
 

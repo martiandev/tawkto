@@ -8,9 +8,19 @@ class SelectionViewModel: ViewModel() {
 
     var selected = MutableLiveData<User>()
 
-    fun select(user:User)
+    fun select(user:User?)
     {
-        selected!!.postValue(user)
+        if(user==null)
+        {
+            selected = MutableLiveData<User>()
+        }
+        else
+        {
+            selected!!.postValue(user!!)
+
+        }
+
+
     }
 
 }

@@ -18,8 +18,9 @@ import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.LocalImageViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 import com.tawk.to.mars.git.viewmodel.SelectionViewModel
+import java.io.Serializable
 
-class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder> {
+class ResultAdapter:RecyclerView.Adapter<ResultAdapter.ViewHolder>,Serializable {
 
     lateinit var networkViewModel:NetworkViewModel
     lateinit var localImageViewModel: LocalImageViewModel

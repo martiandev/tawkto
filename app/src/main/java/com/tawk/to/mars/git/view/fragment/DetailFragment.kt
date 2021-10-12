@@ -20,7 +20,7 @@ import com.tawk.to.mars.git.viewmodel.DatabaseViewModel
 import com.tawk.to.mars.git.viewmodel.LocalImageViewModel
 import com.tawk.to.mars.git.viewmodel.NetworkViewModel
 
-class DetailFragment(val user:User): Fragment() {
+class DetailFragment(): Fragment() {
 
     companion object
     {
@@ -40,7 +40,7 @@ class DetailFragment(val user:User): Fragment() {
     lateinit var databaseViewModel:DatabaseViewModel
     lateinit var loadLocalImageViewModel: LocalImageViewModel
     var isDirty = false
-
+    var user:User ? = null
     var originalNote:String? = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -54,44 +54,48 @@ class DetailFragment(val user:User): Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        this.binding!!.user = this.user
-        this.originalNote = this.user.note
-        this.binding!!.etNote.setText(this.originalNote)
+
         this.binding!!.localImageVM = this.loadLocalImageViewModel
         this.binding!!.fragment = this
         this.networkViewModel.userResult.observe(requireActivity(), Observer {
-
-            if( this.binding!=null)
+            if(this.user!=null)
             {
-                var update = false
-                if(this.user.updated_at!=null)
+                if( this.binding!=null)
                 {
-
-                    if(this.user.updated_at!!.before(it.updated_at))
+                    var update = false
+                    if(this.user!!.updated_at!=null)
                     {
-                        update = true
+
+                        if(this.user!!.updated_at!!.before(it.updated_at))
+                        {
+                            update = true
+                        }
                     }
-                }
-                else
-                {
-                    update  = true
-                }
-                if(update)
-                {
-                    if(it.id == user.id)
+                    else
                     {
-                        isDirty = true
-                        this.binding!!.user = it
-                        this.databaseViewModel.saveProfile(it!!)
-                        this.networkViewModel.request(UserImageRequest(it.id,requireActivity(),it.avatarUrl!!,binding!!.ivAvatar,-1))
+                        update  = true
+                    }
+                    if(update)
+                    {
+                        if(it.id == user!!.id)
+                        {
+                            isDirty = true
+                            this.binding!!.user = it
+                            this.databaseViewModel.saveProfile(it!!)
+                            this.networkViewModel.request(UserImageRequest(it.id,requireActivity(),it.avatarUrl!!,binding!!.ivAvatar,-1))
+                        }
+
                     }
 
                 }
-
             }
+
         })
 
-        this.networkViewModel.request(UserRequest(this.user.login!!))
+        if(this.user!=null)
+        {
+            updateUser(this.user!!)
+        }
 
     }
 
@@ -101,7 +105,19 @@ class DetailFragment(val user:User): Fragment() {
         this.networkViewModel.userResult.removeObservers(requireActivity())
     }
 
+    fun updateUser(user:User)
+    {
+        this.user = user
+        if(binding!=null)
+        {
 
+            this.binding!!.user = this.user
+            this.originalNote = this.user!!.note
+            this.binding!!.etNote.setText(this.originalNote)
+            this.networkViewModel.request(UserRequest(this.user!!.login!!))
+        }
+
+    }
     fun save()
     {
         var save = false

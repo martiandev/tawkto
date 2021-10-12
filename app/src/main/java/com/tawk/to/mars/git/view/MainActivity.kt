@@ -34,6 +34,8 @@ import android.net.NetworkInfo
 
 import android.net.ConnectivityManager
 import android.os.PersistableBundle
+import androidx.fragment.app.FragmentContainer
+import androidx.fragment.app.FragmentContainerView
 import com.tawk.to.mars.git.model.entity.User
 import com.tawk.to.mars.git.model.network.request.SinceRequest
 
@@ -73,9 +75,9 @@ class MainActivity() : AppCompatActivity(){
     val TAG_DF = "Details"
     //----------------------------------------------------------------------------------------------
     //------------------------------------------ Fragment ------------------------------------------
-    lateinit var splash:SplashFragment
+     var splash:SplashFragment? = null
      var vp: VPFragment? =null
-    lateinit var df: DetailFragment
+     var df: DetailFragment? = null
     //----------------------------------------------------------------------------------------------
     //------------------------------------------- View ---------------------------------------------
     private lateinit var binding: ActivityMainBinding
@@ -119,23 +121,31 @@ class MainActivity() : AppCompatActivity(){
         unregisterReceiver(receiver)
     }
     override fun onBackPressed() {
-        var fragment = supportFragmentManager.findFragmentById(R.id.fc_main)
-        if(fragment!=null)
+
+        if(supportFragmentManager.findFragmentById(R.id.fc_main) is DetailFragment)
         {
-            if(fragment is DetailFragment)
-            {
-                (fragment as DetailFragment).save()
-                setVP()
-            }
-            else
-            {
-                super.onBackPressed()
-            }
+            df!!.save()
+            selectionViewModel.select(null)
+            selectionViewModel.selected.removeObservers(this)
+            selectionViewModel.selected.observe(this, Observer {
+                if(it!=null)
+                {
+                    setDetailFragment(it)
+                }
+            })
+
+            setVP()
+
         }
         else
         {
             super.onBackPressed()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
     }
     //==============================================================================================
     //========================================= View ===============================================
@@ -156,7 +166,9 @@ class MainActivity() : AppCompatActivity(){
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         searchView = menu.findItem(R.id.action_search).getActionView() as SearchView
-        if(filter.length>1) { searchView!!.setQuery(filter,false) }
+        if(filter.length>1) { searchView!!.setQuery(filter,false)
+            searchView!!.isIconified=false
+        }
 
         searchView!!.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
@@ -176,6 +188,7 @@ class MainActivity() : AppCompatActivity(){
 
         return true
     }
+
     //==============================================================================================
     //======================================= View =================================================
     fun setUpViewModel()
@@ -185,7 +198,15 @@ class MainActivity() : AppCompatActivity(){
         this.networkViewModel = ViewModelProvider(this).get(NetworkViewModel::class.java)
         this.networkViewModel.init(application as TawkTo)
         this.databaseViewModel.init(application as TawkTo)
-        this.selectionViewModel.selected!!.observe(this, Observer { setDetailFragment(it) })
+        this.selectionViewModel.selected!!.observe(this, Observer {
+                if(it!=null)
+                {
+                    setDetailFragment(it)
+                }
+
+
+             }
+        )
     }
 
 
@@ -193,7 +214,7 @@ class MainActivity() : AppCompatActivity(){
     {
         if (shouldRequestPermission())
         {
-            supportFragmentManager.beginTransaction().add(R.id.fc_main,splash,TAG_SPLASH).commit()
+            supportFragmentManager.beginTransaction().replace(R.id.fc_main,splash!!,TAG_SPLASH).commit()
         }
         else
         {
@@ -217,8 +238,19 @@ class MainActivity() : AppCompatActivity(){
     {
         if(savedInstanceState==null)
         {
-            splash = SplashFragment()
-            vp = VPFragment()
+            if(splash==null)
+            {
+                splash = SplashFragment()
+            }
+            if(vp == null)
+            {
+                vp = VPFragment()
+            }
+            if(df == null)
+            {
+                df = DetailFragment()
+            }
+
         }
         else
         {
@@ -238,7 +270,17 @@ class MainActivity() : AppCompatActivity(){
             {
                 vp = VPFragment()
             }
+            if(getSupportFragmentManager()!!.findFragmentByTag(TAG_DF)!=null)
+            {
+                df = getSupportFragmentManager()!!.findFragmentByTag(TAG_DF) as DetailFragment
+            }
+            else
+            {
+                df = DetailFragment()
+            }
         }
+
+
 
     }
     fun showNavigation()
@@ -261,9 +303,9 @@ class MainActivity() : AppCompatActivity(){
             vp!!.selectItem(it.itemId)
             true
         }
-        menu!!.add(Menu.NONE,0, Menu.NONE, getString(R.string.list))
+        menu!!.add(Menu.NONE,0, Menu.NONE,"")
             .setIcon(R.drawable.list)
-        menu!!.add(Menu.NONE,1, Menu.NONE,getString(R.string.settings))
+        menu!!.add(Menu.NONE,1, Menu.NONE,"")
             .setIcon(R.drawable.setting)
     }
     //==============================================================================================
@@ -272,17 +314,23 @@ class MainActivity() : AppCompatActivity(){
 
     fun setDetailFragment(user: User)
     {
+
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         if(this.searchView!=null)
         {
             this.searchView!!.visibility =View.GONE
         }
-        if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
+
+        df!!.updateUser(user)
+        if(supportFragmentManager.findFragmentByTag(TAG_DF)==null)
         {
-            supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
+            supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,TAG_DF).commit()
         }
-        df = DetailFragment(user)
-        supportFragmentManager.beginTransaction().add(R.id.fc_main, df!!,TAG_DF).commit()
+        else
+        {
+            supportFragmentManager.beginTransaction().show(df!!).commit()
+            supportFragmentManager.beginTransaction().hide(vp!!).commit()
+        }
         binding.toolbar.title = user.login
         databaseViewModel.getUser(user.id)
         this.binding.bottomNav!!.visibility = View.GONE
@@ -291,11 +339,16 @@ class MainActivity() : AppCompatActivity(){
 
     fun setVP()
     {
-        if(supportFragmentManager.findFragmentById(R.id.fc_main)!=null)
+        if(supportFragmentManager.findFragmentByTag(TAG_VP)==null)
         {
-            supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.fc_main)!!).commit()
+            supportFragmentManager.beginTransaction().add(R.id.fc_main, vp!!,TAG_VP).commit()
         }
-        supportFragmentManager.beginTransaction().add(R.id.fc_main, vp!!,"ViewPager").commit()
+        if(supportFragmentManager.findFragmentById(R.id.fc_main) is DetailFragment)
+        {
+            supportFragmentManager.beginTransaction().hide(df!!).commit()
+            supportFragmentManager.beginTransaction().show(vp!!).commit()
+        }
+
         supportActionBar!!.setDisplayHomeAsUpEnabled(false)
         binding.toolbar.visibility= View.VISIBLE
         binding.toolbar.title = "TawkTo"
@@ -304,10 +357,18 @@ class MainActivity() : AppCompatActivity(){
         if(searchView!=null)
         {
             searchView!!.visibility =View.VISIBLE
-        }
+            if(filter!=null)
+            {
+                if(filter.length>0)
+                {
+                    searchView!!.setQuery(filter,false)
+                }
+            }
 
+        }
         invalidateOptionsMenu()
     }
+
     //==============================================================================================
     //======================================= Permission ===========================================
     //Check if permission to read and write on storage is granted returns true if app needs to request permission
@@ -326,7 +387,7 @@ class MainActivity() : AppCompatActivity(){
         {
             Constants.REQUEST_PERMISSION ->{
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    supportFragmentManager.beginTransaction().remove(splash).commit()
+                    supportFragmentManager.beginTransaction().remove(splash!!).commit()
                     showNavigation()
                     setBottomNavigation()
                     setVP()
